@@ -3,7 +3,7 @@
  * 功能：离线缓存、资源预缓存、更新检测
  * ============================================ */
 
-const CACHE_VERSION = 'v1.0.0';
+const CACHE_VERSION = 'v2.0.0-fullscreen';
 const CACHE_NAME = `otc-workbox-${CACHE_VERSION}`;
 
 // 预缓存资源列表 - PWA首次安装时缓存

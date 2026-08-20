@@ -2,7 +2,7 @@
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover, interactive-widget=resizes-content">
 <title>OTC医药销售个人AI工作台 · 华润三九</title>
 <style>
 /* ========== 全局样式 ========== */
@@ -22,6 +22,16 @@
   --a-level: #E53935;
   --b-level: #FB8C00;
   --c-level: #1E88E5;
+  /* 移动端安全区（状态栏/刘海/底部横条），viewport-fit=cover 时生效 */
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+  --safe-left: env(safe-area-inset-left, 0px);
+  --safe-right: env(safe-area-inset-right, 0px);
+}
+html, body {
+  /* 移动端小视口单位，避免被浏览器地址栏占用高度 */
+  min-height: 100svh;
+  height: 100%;
 }
 body {
   font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
@@ -29,8 +39,40 @@ body {
   color: var(--text);
   font-size: 14px;
   line-height: 1.6;
-  min-height: 100vh;
-  padding-bottom: 70px;
+  min-height: 100svh;
+  padding-bottom: calc(70px + var(--safe-bottom));
+  padding-top: var(--safe-top);
+  padding-left: var(--safe-left);
+  padding-right: var(--safe-right);
+  overscroll-behavior-y: none;          /* 禁用iOS橡皮筋回弹 */
+  -webkit-overflow-scrolling: touch;
+}
+/* ========== PWA 全屏/Standalone 模式强化：进一步消除浏览器感 ========== */
+@media (display-mode: standalone),
+       (display-mode: fullscreen),
+       (display-mode: minimal-ui) {
+  body {
+    /* 独立App模式：固定为小视口高度，不再受地址栏伸缩影响 */
+    height: 100svh;
+    min-height: 100svh;
+    overflow-y: auto;
+  }
+  /* fullscreen模式：完全不留顶部间隙，内容直接顶到刘海下一行 */
+}
+@media (display-mode: fullscreen) {
+  body {
+    padding-top: var(--safe-top);
+    padding-bottom: var(--safe-bottom);
+  }
+  .header {
+    padding-top: calc(14px + var(--safe-top)) !important;
+  }
+}
+/* iOS 专属：standalone 且用 black-translucent 状态栏时 header 需避让 */
+@supports (-webkit-touch-callout: none) {
+  .header {
+    padding-top: calc(14px + var(--safe-top));
+  }
 }
 /* ========== 顶部栏 ========== */
 .header {
@@ -798,25 +840,64 @@ textarea { resize: vertical; min-height: 70px; }
   color: #4b5563;
 }
 .pwa-install-tip .btn-later:hover { background: #e5e7eb; }
+
+/* ========== PWA 运行模式角标（右上角胶囊）：判断是否真的全屏 ========== */
+.pwa-mode-badge {
+  position: fixed;
+  top: calc(6px + var(--safe-top, 0px));
+  right: calc(8px + var(--safe-right, 0px));
+  z-index: 9999;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 10px;
+  border-radius: 999px;
+  font-size: 11px;
+  line-height: 1;
+  color: #fff;
+  cursor: pointer;
+  opacity: 0.85;
+  transition: opacity 0.2s;
+  user-select: none;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+  backdrop-filter: blur(8px);
+}
+.pwa-mode-badge:hover { opacity: 1; }
+.pwa-mode-badge .dot { width:7px; height:7px; border-radius:50%; background:#fff; opacity:0.9; }
+.pwa-mode-badge.mode-fullscreen { background: linear-gradient(135deg, #10b981, #059669); }
+.pwa-mode-badge.mode-standalone { background: linear-gradient(135deg, #2563eb, #1d4ed8); }
+.pwa-mode-badge.mode-minimal-ui { background: linear-gradient(135deg, #f59e0b, #d97706); }
+.pwa-mode-badge.mode-browser    { background: linear-gradient(135deg, #ef4444, #dc2626); }
+.pwa-mode-badge.mode-shortcut   { background: linear-gradient(135deg, #a855f7, #7e22ce); }
+@media (display-mode: fullscreen) {
+  .pwa-mode-badge.mode-fullscreen { display: inline-flex !important; }
+}
+/* 顶部栏右上角避让模式角标（避免被header覆盖） */
+.header { overflow: visible; }
 </style>
 
 <!-- ========== PWA 元标签 ========== -->
 <link rel="manifest" href="./manifest.json">
-<meta name="theme-color" content="#2563eb">
+<meta name="theme-color" content="#2563eb" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#1e3a8a" media="(prefers-color-scheme: dark)">
 <meta name="description" content="华润三九OTC广东区域药店终端销售个人AI工作台 - 客户档案、拓客谈判、动销策划、复盘、产品知识库、待办">
 
 <!-- iOS Safari PWA 支持 -->
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="OTC工作台">
+<meta name="apple-mobile-web-app-orientation" content="portrait">
 <link rel="apple-touch-icon" href="./icons/apple-touch-icon.png">
 <link rel="apple-touch-icon" sizes="152x152" href="./icons/apple-touch-icon.png">
 <link rel="apple-touch-icon" sizes="180x180" href="./icons/apple-touch-icon.png">
 <link rel="apple-touch-icon" sizes="167x167" href="./icons/apple-touch-icon.png">
+<!-- iOS 启动画面 (app-startup-image)：减少启动时看到浏览器白屏 -->
+<link rel="apple-touch-startup-image" media="(device-width: 390px) and (device-height: 844px) and (-webkit-device-pixel-ratio: 3)" href="./icons/icon-512.png">
 
 <!-- Android Chrome PWA 支持 -->
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="application-name" content="OTC医药销售AI工作台">
+<meta name="screen-orientation" content="portrait">
 <link rel="icon" type="image/png" sizes="192x192" href="./icons/icon-192.png">
 <link rel="icon" type="image/png" sizes="512x512" href="./icons/icon-512.png">
 <link rel="shortcut icon" href="./icons/icon-192.png">
@@ -826,9 +907,21 @@ textarea { resize: vertical; min-height: 70px; }
 <meta name="msapplication-tap-highlight" content="no">
 
 <!-- 防止Safari手机号识别干扰 -->
-<meta name="format-detection" content="telephone=no">
+<meta name="format-detection" content="telephone=no,address=no,email=no">
+
+<!-- 禁用iOS Safari双击缩放、橡皮筋、移动端选中高亮 -->
+<meta name="apple-touch-fullscreen" content="yes">
+<meta name="x5-orientation" content="portrait">
+<meta name="x5-fullscreen" content="true">
+<meta name="x5-page-mode" content="app">
 </head>
 <body>
+
+<!-- ========== PWA 运行模式角标（右上角，点一下可永久隐藏） ========== -->
+<div id="pwaModeBadge" class="pwa-mode-badge mode-browser" onclick="hidePwaModeBadge()" style="display:inline-flex;">
+  <span class="dot"></span>
+  <span id="pwaModeBadgeText">检测中...</span>
+</div>
 
 <!-- 顶部栏 -->
 <div class="header">
@@ -3498,6 +3591,80 @@ init();
       </div>
     </div>`;
   document.body.insertAdjacentHTML('beforeend', bannerHTML);
+
+  // ---------- 0. PWA 运行模式检测 + 右上角角标 ----------
+  // 模式字典：fullscreen 绿 ✅最佳；standalone 蓝 ✅好；minimal-ui 橙 ⚠️最小化UI（仍有少部分浏览器控件）；
+  //          shortcut 紫 = 快捷方式(仍用普通浏览器Tab，必然带地址栏)；browser 红 ❌就是普通网页
+  function detectPwaDisplayMode() {
+    // 1) CSS media query：standalone/fullscreen/minimal-ui
+    const modes = ['fullscreen','standalone','minimal-ui'];
+    for (const m of modes) {
+      if (window.matchMedia && window.matchMedia(`(display-mode: ${m})`).matches) return m;
+    }
+    // 2) iOS 专用：standalone 模式下这个属性为 true（部分iOS版本上面CSS判断不准，这里兜底）
+    if (window.navigator.standalone === true) return 'standalone';
+    // 3) Android 快捷方式/HTA兜底：referrer里的 或 ?source=pwa/utm_source=pwa 或 start_url 命中
+    const ua = (navigator.userAgent || '').toLowerCase();
+    const search = window.location.search || '';
+    const isPWASource = /source[=_-]pwa|utm_source[=_-]pwa|launch=true/i.test(search + document.referrer);
+    // 4) heuristic：是否"无地址栏"特征（iOS独立WebView地址栏不可见）—— 不能100%，但可以辅助
+    // 5) 否则：检查是否为"快捷方式"（通常带source参数或URL带#从桌面进来）
+    if (isPWASource) return 'shortcut';
+    // 6) 普通浏览器
+    return 'browser';
+  }
+  function applyPwaModeBadge() {
+    const badge = document.getElementById('pwaModeBadge');
+    const text  = document.getElementById('pwaModeBadgeText');
+    if (!badge || !text) return;
+    // 用户是否之前点过隐藏
+    if (localStorage.getItem('pwa_mode_badge_hidden') === '1') {
+      badge.style.display = 'none';
+      return;
+    }
+    const mode = detectPwaDisplayMode();
+    const map = {
+      fullscreen: { cls: 'mode-fullscreen', txt: '✅ 全屏模式',  tip: '真正PWA全屏：无任何浏览器UI，完美！' },
+      standalone: { cls: 'mode-standalone', txt: '🟦 独立App模式', tip: '真正PWA：像原生App一样运行，无浏览器地址栏 ✅' },
+      'minimal-ui': { cls: 'mode-minimal-ui', txt: '🟧 最小UI',   tip: '保留最少量浏览器按钮（前进/后退/刷新）。想完全无UI需用 Chrome 浏览器菜单「安装应用」重新装一次。' },
+      shortcut:   { cls: 'mode-shortcut',   txt: '🟪 快捷方式',   tip: '你当前只是一个"浏览器快捷方式"：仍然用浏览器Tab打开 → 必然有地址栏/底栏！👉 请用浏览器菜单点「安装应用」生成真正PWA。' },
+      browser:    { cls: 'mode-browser',    txt: '🟥 网页模式',   tip: '普通网页浏览：必然有浏览器UI。👉 菜单「添加到主屏幕 / 安装应用」来生成真正PWA。' }
+    };
+    const info = map[mode] || map.browser;
+    badge.classList.remove('mode-fullscreen','mode-standalone','mode-minimal-ui','mode-shortcut','mode-browser');
+    badge.classList.add(info.cls);
+    text.textContent = info.txt;
+    badge.title = info.tip;
+    console.log('[PWA] 当前运行模式：', mode, '|', info.tip);
+    // 首次进入 5 秒后，若不是 standalone/fullscreen 则弹一次明确提示（只读一次）
+    if (!localStorage.getItem('pwa_mode_tip_shown')) {
+      localStorage.setItem('pwa_mode_tip_shown','1');
+      setTimeout(() => {
+        const m = detectPwaDisplayMode();
+        if (m === 'fullscreen' || m === 'standalone') {
+          toast('🎉 真正PWA模式！无浏览器UI ✅');
+        } else if (m === 'minimal-ui') {
+          toast('ℹ️ 当前为最小UI模式。想完全无UI，请到浏览器菜单→「安装应用」重装一次。', 5000);
+        } else if (m === 'shortcut') {
+          toast('⚠️ 桌面图标是「快捷方式」→ 仍带浏览器UI！请用菜单「安装应用」生成真正PWA即可移除。', 7000);
+        } else {
+          toast('💡 当前为普通网页。请点浏览器菜单→「安装应用」/「添加到主屏幕」以获得全屏体验。', 6000);
+        }
+      }, 5000);
+    }
+  }
+  window.hidePwaModeBadge = function() {
+    localStorage.setItem('pwa_mode_badge_hidden','1');
+    const b = document.getElementById('pwaModeBadge');
+    if (b) b.style.display = 'none';
+    toast('已隐藏，需要重新显示请长按页面空白处或清除浏览器数据');
+  };
+  // 立运行 + display-mode 变化时同步更新（用户刚从浏览器安装转standalone启动就会变色）
+  applyPwaModeBadge();
+  const pwaMql = window.matchMedia('(display-mode: standalone), (display-mode: fullscreen), (display-mode: minimal-ui)');
+  if (pwaMql.addEventListener) pwaMql.addEventListener('change', applyPwaModeBadge);
+  else if (pwaMql.addListener)   pwaMql.addListener(applyPwaModeBadge);
+  window.addEventListener('orientationchange', () => setTimeout(applyPwaModeBadge, 300));
 
   // ---------- 全局变量 ----------
   let newWorker = null;     // 等待激活的新 SW
