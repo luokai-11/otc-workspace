@@ -29,9 +29,8 @@
   --safe-right: env(safe-area-inset-right, 0px);
 }
 html, body {
-  /* 移动端小视口单位，避免被浏览器地址栏占用高度 */
+  /* 移动端小视口单位：只限制最小，不限制最大，让内容自然撑开才能正常滚到底 */
   min-height: 100svh;
-  height: 100%;
 }
 body {
   font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
@@ -40,29 +39,31 @@ body {
   font-size: 14px;
   line-height: 1.6;
   min-height: 100svh;
-  padding-bottom: calc(70px + var(--safe-bottom));
+  /* 底部永远预留足够空间：固定tab导航70px + 系统安全区(横条/手势区) + 再多30px防最后一条卡片贴边遮挡 */
+  padding-bottom: calc(100px + var(--safe-bottom));
   padding-top: var(--safe-top);
   padding-left: var(--safe-left);
   padding-right: var(--safe-right);
-  overscroll-behavior-y: none;          /* 禁用iOS橡皮筋回弹 */
+  overscroll-behavior-y: contain;        /* 页面内部可滚，禁止iOS橡皮筋回弹导致的顶部留白 */
   -webkit-overflow-scrolling: touch;
 }
 /* ========== PWA 全屏/Standalone 模式强化：进一步消除浏览器感 ========== */
+/* 关键：任何模式下都【不要】给 body 设置固定 height:100svh —— 内容超过一屏会滚不到底 */
 @media (display-mode: standalone),
        (display-mode: fullscreen),
        (display-mode: minimal-ui) {
   body {
-    /* 独立App模式：固定为小视口高度，不再受地址栏伸缩影响 */
-    height: 100svh;
+    /* 仅做 min-height 约束，不锁死高度 → 滚到底才是第一优先级 */
     min-height: 100svh;
-    overflow-y: auto;
+    overflow-x: hidden;
+    overflow-y: visible;   /* 允许内容自由溢出，滚动由 <html> 负责（移动端默认行为）*/
   }
-  /* fullscreen模式：完全不留顶部间隙，内容直接顶到刘海下一行 */
 }
 @media (display-mode: fullscreen) {
   body {
     padding-top: var(--safe-top);
-    padding-bottom: var(--safe-bottom);
+    /* fullscreen下也必须给底部tab导航留70px，之前漏掉了会导致页面底部被tabbar吃掉 */
+    padding-bottom: calc(100px + var(--safe-bottom));
   }
   .header {
     padding-top: calc(14px + var(--safe-top)) !important;
@@ -99,6 +100,15 @@ body {
   padding: 12px;
   max-width: 900px;
   margin: 0 auto;
+  /* 给内容区自身也兜底一段空白，避免最后一张卡片正好贴底时被固定tabbar覆盖 */
+  padding-bottom: 40px;
+}
+/* 每个激活的module末尾也留一小块空白，滚动到底时视觉上更舒适 */
+.module.active::after {
+  content: "";
+  display: block;
+  height: 30px;
+  width: 100%;
 }
 .module { display: none; }
 .module.active { display: block; animation: fadeIn 0.25s ease; }
