@@ -839,6 +839,7 @@ textarea { resize: vertical; min-height: 70px; }
     <button class="backup-btn" onclick="manualBackup()">💾 立即备份</button>
     <button class="backup-btn" onclick="downloadBackup()">⬇️ 导出文件</button>
     <button class="backup-btn" onclick="document.getElementById('importFile').click()">⬆️ 导入恢复</button>
+    <button id="pwaInstallButton" class="backup-btn" style="background:rgba(255,255,255,0.22);font-weight:600;" onclick="openInstallDialog()" title="安装成手机App">📥 安装APP</button>
     <input type="file" id="importFile" accept=".json" style="display:none;" onchange="importBackup(event)">
     <span class="backup-info" id="backupInfo">加载中...</span>
   </div>
@@ -3595,42 +3596,109 @@ init();
   updateOnlineStatus();
 
   // ---------- 4. Android Chrome 安装提示 ----------
+  // 把 deferredPrompt 暴露到 window，便于调试和多个入口共享
+  window.__pwaPrompt = { deferred: null, capturedAt: null, installed: false };
+
   window.addEventListener('beforeinstallprompt', (e) => {
     // 阻止浏览器默认的安装弹框，我们自定义时机
     e.preventDefault();
     deferredPrompt = e;
-    console.log('[PWA] 捕获到安装提示事件，可稍后触发');
-    // 延迟一点显示，避免页面刚加载就打扰用户
+    window.__pwaPrompt.deferred = e;
+    window.__pwaPrompt.capturedAt = Date.now();
+    console.log('[PWA] ✅ 捕获到 beforeinstallprompt 事件，已可以触发安装');
+    // 更新安装按钮状态为可安装
+    updateInstallButtonState();
+    // 延迟一点显示底部浮层，避免页面刚加载就打扰
     setTimeout(() => showAndroidInstallTip(), 2000);
   });
 
   function showAndroidInstallTip() {
-    if (!deferredPrompt) return;
+    if (isInStandalone()) return;
     if (localStorage.getItem('pwa_install_dismissed')) return;
-    // 如果已经在 standalone 模式（已安装），不再提示
-    if (window.matchMedia('(display-mode: standalone)').matches) return;
 
-    // 复用 iOS 提示的浮层结构，动态替换内容
     const tip = document.getElementById('pwaInstallTip');
     if (!tip) return;
-    tip.querySelector('.tip-steps').innerHTML = `
-      点击下方按钮将 OTC工作台 安装到桌面，<br>
-      像 App 一样全屏使用，支持离线访问 📲`;
+    // 根据是否捕获到事件显示不同内容
+    const canNative = !!deferredPrompt;
+    tip.querySelector('.tip-steps').innerHTML = canNative
+      ? `点击下方「立即安装」按钮，浏览器将弹出系统安装框，<br>安装后桌面上会出现 🟦 OTC工作台 图标，像App一样全屏使用 📲`
+      : `当前浏览器暂未触发自动安装。请按下面操作：<br>① 点击浏览器右上角 <code>⋮</code> 菜单<br>② 选择 <code>添加到主屏幕 / 安装应用</code><br>③ 按提示完成即可生成桌面图标`;
     const footer = tip.querySelector('.tip-footer');
-    footer.innerHTML = `
-      <button class="btn-later" onclick="hideInstallTip()">稍后再说</button>
-      <button class="btn-refresh" style="background:#2563eb;color:#fff;" onclick="triggerAndroidInstall()">立即安装</button>`;
+    if (canNative) {
+      footer.innerHTML = `
+        <button class="btn-later" onclick="hideInstallTip()">稍后</button>
+        <button id="pwaTipInstallBtn" class="btn-refresh" style="background:#2563eb;color:#fff;" onclick="triggerAndroidInstall(true)">📥 立即安装</button>`;
+    } else {
+      footer.innerHTML = `
+        <button class="btn-later" onclick="hideInstallTip()">我知道了</button>`;
+    }
     tip.classList.add('show');
   }
 
-  window.triggerAndroidInstall = async function() {
-    if (!deferredPrompt) return;
-    deferredPrompt.prompt();
-    const { outcome } = await deferredPrompt.userChoice;
-    console.log('[PWA] 用户安装选择：', outcome);
-    deferredPrompt = null;
-    hideInstallTip();
+  window.triggerAndroidInstall = async function(fromUserClick) {
+    // 关键修复：不再静默 return，而是给出明确的用户反馈
+    if (!deferredPrompt) {
+      console.warn('[PWA] ⚠️ deferredPrompt 不存在，无法直接触发浏览器安装弹框');
+      // 已安装？在PWA模式下
+      if (isInStandalone()) {
+        toast('✅ 你已在PWA独立模式中运行，无需再次安装');
+        return;
+      }
+      // 捕获时间不够？
+      if (!window.__pwaPrompt.capturedAt) {
+        toast('⏳ 系统准备中，请再等待3秒后重试，或用浏览器菜单「安装应用」');
+      } else {
+        toast('ℹ️ 浏览器暂不支持一键安装，请点菜单「⋮」→「添加到主屏幕」');
+      }
+      // 展示手动安装指引
+      showManualInstallGuide();
+      return;
+    }
+
+    const btn = document.getElementById('pwaTipInstallBtn');
+    const oldHTML = btn ? btn.innerHTML : '';
+    if (btn) { btn.disabled = true; btn.innerHTML = '⏳ 正在弹出安装框...'; btn.style.opacity = '0.6'; }
+
+    try {
+      deferredPrompt.prompt();
+      console.log('[PWA] 🟢 prompt() 已调用，等待用户选择...');
+      const { outcome } = await deferredPrompt.userChoice;
+      console.log('[PWA] 用户安装选择：', outcome);
+      if (outcome === 'accepted') {
+        toast('✅ 已接受安装，桌面图标生成中... 成功后从桌面启动');
+        window.__pwaPrompt.installed = true;
+      } else {
+        toast('ℹ️ 已取消，稍后可随时点击顶部「📥安装」按钮继续');
+      }
+    } catch (err) {
+      console.error('[PWA] prompt() 调用失败：', err);
+      toast('❌ 安装调用失败：' + err.message + '，请改用菜单「⋮」→「添加到主屏幕」');
+      showManualInstallGuide();
+    } finally {
+      deferredPrompt = null;
+      window.__pwaPrompt.deferred = null;
+      hideInstallTip();
+      if (btn) { btn.disabled = false; btn.innerHTML = oldHTML; btn.style.opacity = '1'; }
+    }
   };
+
+  // 手动安装指引兜底（适配所有情况）
+  function showManualInstallGuide() {
+    const tip = document.getElementById('pwaInstallTip');
+    if (!tip) return;
+    const _ios = isIOS();
+    const _standalone = isInStandalone();
+    if (_standalone) { hideInstallTip(); return; }
+    tip.querySelector('.tip-title').textContent = '手动安装指引';
+    tip.querySelector('.tip-subtitle').textContent = _ios ? 'iPhone / iPad Safari 操作步骤' : 'Android 浏览器操作步骤';
+    tip.querySelector('.tip-steps').innerHTML = _ios
+      ? `1. 点击 Safari 底部的 <code>分享</code> 按钮 ⎋<br>2. 向下滑动，选择 <code>添加到主屏幕</code> ➕<br>3. 右上角 <code>添加</code> → 桌面出现图标即可启动`
+      : `方法一（推荐）：点击浏览器右上角 <code>⋮</code> 菜单 → 选择 <code>安装应用 / 添加到主屏幕</code><br>方法二：地址栏右侧可能出现 📥 安装图标，点击即可`;
+    const footer = tip.querySelector('.tip-footer');
+    footer.innerHTML = `<button class="btn-later" onclick="hideInstallTip()" style="width:100%;background:#2563eb;color:#fff;">好的，我知道了</button>`;
+    tip.classList.add('show');
+  }
+  window.showManualInstallGuide = showManualInstallGuide;
 
   // ---------- 5. iOS Safari 安装提示 ----------
   function isIOS() {
@@ -3662,19 +3730,93 @@ init();
   // 启动 iOS 检测
   if (document.readyState === 'complete' || document.readyState === 'interactive') {
     showIOSInstallTip();
+    updateInstallButtonState();
   } else {
-    document.addEventListener('DOMContentLoaded', showIOSInstallTip);
+    document.addEventListener('DOMContentLoaded', () => { showIOSInstallTip(); updateInstallButtonState(); });
   }
+  // 当安装状态变化时，同步 update（display-mode 变化 = 已安装进入standalone）
+  const mql = window.matchMedia('(display-mode: standalone)');
+  if (mql.addEventListener) {
+    mql.addEventListener('change', (e) => {
+      if (e.matches) {
+        window.__pwaPrompt.installed = true;
+        updateInstallButtonState();
+      }
+    });
+  }
+
+  // ---------- 顶部安装按钮：状态更新 + 点击处理 ----------
+  function updateInstallButtonState() {
+    const btn = document.getElementById('pwaInstallButton');
+    if (!btn) return;
+    if (isInStandalone() || window.__pwaPrompt.installed) {
+      btn.textContent = '✅ 已安装';
+      btn.style.background = 'rgba(34,197,94,0.25)';
+      btn.style.color = '#dcfce7';
+      btn.title = '已在独立App模式运行';
+      btn.disabled = true;
+    } else if (!!deferredPrompt) {
+      btn.textContent = '📥 可一键安装';
+      btn.style.background = 'rgba(34,197,94,0.3)';
+      btn.style.color = '#fff';
+      btn.style.fontWeight = '700';
+      btn.title = '点击弹出浏览器安装框';
+      btn.disabled = false;
+    } else {
+      btn.textContent = '📥 安装APP';
+      btn.style.background = 'rgba(255,255,255,0.22)';
+      btn.style.color = '';
+      btn.style.fontWeight = '600';
+      btn.title = '点击查看安装步骤';
+      btn.disabled = false;
+    }
+  }
+  window.updateInstallButtonState = updateInstallButtonState;
+
+  window.openInstallDialog = function() {
+    // 已安装 → 提示即可
+    if (isInStandalone() || window.__pwaPrompt.installed) {
+      toast('✅ 你已是APP独立模式，无需重复安装');
+      return;
+    }
+    // 已捕获事件 → 直接进入可安装弹层
+    if (deferredPrompt) {
+      showAndroidInstallTip();
+      // 如果之前是dismissed状态，清除它以便这次弹出
+      localStorage.removeItem('pwa_install_dismissed');
+      const tip = document.getElementById('pwaInstallTip');
+      if (tip) tip.classList.add('show');
+      return;
+    }
+    // iOS → 直接展示手动引导
+    if (isIOS()) {
+      localStorage.removeItem('pwa_install_dismissed');
+      showManualInstallGuide();
+      return;
+    }
+    // 其他情况 → 展示通用兜底安装指引，并等待几秒后再看看事件有没有捕获
+    localStorage.removeItem('pwa_install_dismissed');
+    showManualInstallGuide();
+    setTimeout(() => {
+      if (deferredPrompt && !isInStandalone()) {
+        // 等来了beforeinstallprompt事件 → 切换成可安装弹层
+        showAndroidInstallTip();
+      }
+    }, 3000);
+  };
 
   // ---------- 6. PWA 首次安装成功提示 ----------
   window.addEventListener('appinstalled', () => {
     console.log('[PWA] 应用已成功安装到桌面');
     deferredPrompt = null;
+    window.__pwaPrompt.deferred = null;
+    window.__pwaPrompt.installed = true;
     hideInstallTip();
+    updateInstallButtonState();
     toast('📲 安装成功！请从桌面图标启动，体验全屏模式');
   });
 
-  console.log('[PWA] 初始化脚本加载完成');
+  console.log('[PWA] 初始化脚本加载完成，点击顶部「📥安装APP」按钮随时安装');
 })();
 </script>
 </body>

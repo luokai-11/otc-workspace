@@ -1,28 +1,40 @@
 {
+  "id": "/otc-workspace/",
   "name": "OTC医药销售AI工作台",
   "short_name": "OTC工作台",
   "description": "华润三九OTC广东区域药店终端销售个人AI工作台 - 客户档案、拓客谈判、动销策划、复盘、产品知识库、待办",
-  "start_url": "./index.html",
+  "lang": "zh-CN",
+  "dir": "ltr",
   "scope": "./",
+  "start_url": "./index.html",
   "display": "standalone",
+  "display_override": ["standalone", "minimal-ui", "browser"],
   "orientation": "portrait-primary",
   "background_color": "#ffffff",
   "theme_color": "#2563eb",
-  "lang": "zh-CN",
-  "dir": "ltr",
   "categories": ["business", "productivity", "medical"],
+  "launch_handler": {
+    "client_mode": "navigate-existing"
+  },
+  "edge_side_panel": {
+    "preferred_width": 480
+  },
+  "permissions": [
+    "notifications",
+    "storage"
+  ],
   "icons": [
     {
       "src": "./icons/icon-192.png",
       "sizes": "192x192",
       "type": "image/png",
-      "purpose": "any maskable"
+      "purpose": "any"
     },
     {
       "src": "./icons/icon-512.png",
       "sizes": "512x512",
       "type": "image/png",
-      "purpose": "any maskable"
+      "purpose": "any"
     },
     {
       "src": "./icons/icon-maskable-192.png",
@@ -43,28 +55,28 @@
       "short_name": "客户",
       "description": "快速打开客户档案管理",
       "url": "./index.html#customers-tab",
-      "icons": [{ "src": "./icons/icon-192.png", "sizes": "192x192" }]
+      "icons": [{ "src": "./icons/icon-192.png", "sizes": "192x192", "type": "image/png" }]
     },
     {
       "name": "动销策划",
       "short_name": "动销",
       "description": "生成动销落地方案",
       "url": "./index.html#market-tab",
-      "icons": [{ "src": "./icons/icon-192.png", "sizes": "192x192" }]
+      "icons": [{ "src": "./icons/icon-192.png", "sizes": "192x192", "type": "image/png" }]
     },
     {
       "name": "每日待办",
       "short_name": "待办",
       "description": "查看每日待办事项",
       "url": "./index.html#todo-tab",
-      "icons": [{ "src": "./icons/icon-192.png", "sizes": "192x192" }]
+      "icons": [{ "src": "./icons/icon-192.png", "sizes": "192x192", "type": "image/png" }]
     },
     {
       "name": "销售复盘",
       "short_name": "复盘",
       "description": "录入和查询销售复盘",
       "url": "./index.html#review-tab",
-      "icons": [{ "src": "./icons/icon-192.png", "sizes": "192x192" }]
+      "icons": [{ "src": "./icons/icon-192.png", "sizes": "192x192", "type": "image/png" }]
     }
   ]
 }
