@@ -3975,5 +3975,489 @@ init();
   _log('[PWA] 初始化脚本加载完成，浏览器自动弹出安装提示或通过菜单「安装应用」可安装到桌面');
 })();
 </script>
+
+<!-- ========== 云端同步：LeanCloud REST 封装（零依赖、未配置则纯离线不发任何请求） ========== -->
+<script>
+/* ---------- 1. 同步配置 ----------
+ * 这三项先留空，按末尾说明书去 LeanCloud 开通后在"同步设置"面板里填入即可。
+ * 填入后数据自动保存在 localStorage，不填→完全保持现在的纯离线行为，零副作用。
+ */
+const LC_CFG = {
+  get appId()     { return localStorage.getItem('lc_app_id')     || ''; },
+  get appKey()    { return localStorage.getItem('lc_app_key')    || ''; },
+  get serverURL() { return localStorage.getItem('lc_server_url') || ''; },
+  set appId(v)     { localStorage.setItem('lc_app_id', v); },
+  set appKey(v)    { localStorage.setItem('lc_app_key', v); },
+  set serverURL(v) { localStorage.setItem('lc_server_url', v); },
+};
+const LC_SESSION_KEY = 'lc_session'; // {token, userId, username}
+
+/* ---------- 2. 实体映射：4 张业务表 ----------
+ * 关键约束：
+ *   - 云端每条记录都带 owner（登录用户ID），隔离不同人的数据
+ *   - 每条记录含 localId（=你本地对象的 id），做 LWW 合并的主键
+ *   - deleted 软删除，保证"一端删了另一端也能感知"（918209 核心教训）
+ */
+const ENTITY = {
+  customer:       { cls: 'Customer',       localKey: 'otc_customers',          local: () => customers,       setLocal: (v) => { customers = v; saveDB(); } },
+  todo:           { cls: 'Todo',           localKey: 'otc_todos',              local: () => todos,           setLocal: (v) => { todos = v; saveTodos(); } },
+  recurringTodo:  { cls: 'RecurringTodo',  localKey: 'otc_recurring_todos',    local: () => recurringTodos,  setLocal: (v) => { recurringTodos = v; saveRecurring(); } },
+  reviewHistory:  { cls: 'ReviewHistory',  localKey: 'otc_review_history',     local: () => loadReviewHistory(), setLocal: (v) => saveReviewHistory(v) },
+};
+
+/* ---------- 3. 同步核心：LeanCloud REST ---------- */
+const Sync = (() => {
+  let session = {};
+  try { session = JSON.parse(localStorage.getItem(LC_SESSION_KEY) || '{}'); } catch(e) { session = {}; }
+  const saveSession = (s) => { session = s || {}; if (s) localStorage.setItem(LC_SESSION_KEY, JSON.stringify(s)); else localStorage.removeItem(LC_SESSION_KEY); renderBadge(); };
+  const isConfigured = () => !!(LC_CFG.appId && LC_CFG.appKey);
+  const isLoggedIn   = () => !!(session.token && session.userId);
+  const headers = (extra={}) => Object.assign({
+    'Content-Type': 'application/json',
+    'X-LC-Id':    LC_CFG.appId,
+    'X-LC-Key':   LC_CFG.appKey,
+  }, session.token ? { 'X-LC-Session': session.token } : {}, extra);
+  async function lcRequest(method, path, body) {
+    if (!isConfigured()) throw new Error('未配置 LeanCloud（App ID 和 App Key 都要填）');
+    let base = LC_CFG.serverURL || '';
+    if (!base) {
+      // 国内版通常长这样：https://<app-id-prefix>.api.lncld.net；国际版用户填的就是完整域名
+      // 保险起见：让用户明确在面板里复制"API 服务器地址"，避免自动猜错节点
+      throw new Error('请在同步设置里填写「API 服务器地址」(LeanCloud控制台→设置→应用凭证→API 服务器地址，全部复制即可)');
+    }
+    if (base.endsWith('/')) base = base.slice(0, -1);
+    const resp = await fetch(base + path, {
+      method, headers: headers(), body: body ? JSON.stringify(body) : undefined,
+    });
+    const text = await resp.text();
+    let data = {}; try { data = JSON.parse(text); } catch(e) {}
+    if (!resp.ok) throw new Error(data.error || text || ('HTTP '+resp.status));
+    return data;
+  }
+
+  /* ---------- 账号 ---------- */
+  async function register(username, password) {
+    const r = await lcRequest('POST', '/1.1/users', { username, password });
+    saveSession({ token: r.sessionToken, userId: r.objectId, username: r.username });
+    toast('✅ 注册成功，已登录并开始同步');
+    bootSync();
+  }
+  async function login(username, password) {
+    const r = await lcRequest('POST', '/1.1/login', { username, password });
+    saveSession({ token: r.sessionToken, userId: r.objectId, username: r.username });
+    toast('✅ 登录成功');
+    bootSync();
+  }
+  function logout() {
+    saveSession(null);
+    toast('已退出同步，当前为纯本地模式');
+    renderBadge();
+  }
+  /* 检查 sessionToken 是否仍有效（首次 boot 时调用） */
+  async function checkMe() {
+    try {
+      const r = await lcRequest('GET', '/1.1/users/me');
+      saveSession({ token: session.token, userId: r.objectId, username: r.username });
+      return true;
+    } catch(e) {
+      saveSession(null);
+      return false;
+    }
+  }
+
+  /* ---------- 全量 pull：拉云端 → LWW 合并本地 ---------- */
+  async function pullAll() {
+    if (!isLoggedIn()) return;
+    setBadgeState('syncing');
+    const results = {};
+    for (const [key, meta] of Object.entries(ENTITY)) {
+      try {
+        // 仅拉自己的数据，按 updatedAt 倒序拿 1000 条（足够个人用）
+        const where = encodeURIComponent(JSON.stringify({ owner: session.userId }));
+        const r = await lcRequest('GET', `/1.1/classes/${meta.cls}?where=${where}&limit=1000&order=-updatedAt`);
+        results[key] = r.results || [];
+      } catch(e) {
+        _warn('[Sync] pull', key, '失败：', e.message);
+        results[key] = 'ERR:' + e.message;
+      }
+    }
+    applyMerge(results);
+    refreshAllUI();
+    setBadgeState('ok');
+    toast('🔄 数据已从云端同步');
+  }
+
+  /* ---------- LWW 合并 ----------
+   * 同一 localId：
+   *   云端 deleted=true → 本地删
+   *   否则：谁 updatedAt 新听谁的
+   */
+  function tsOf(row, isCloud) {
+    if (!row) return 0;
+    const s = row.updatedAt || row.createdAt;
+    if (!s) return 0;
+    // 云端 updatedAt 是字符串 ISO；本地也是 ISO
+    try { return new Date(s).getTime() || 0; } catch(e) { return 0; }
+  }
+  function applyMerge({ customer=[], todo=[], recurringTodo=[], reviewHistory=[] }) {
+    const mapping = { customer, todo, recurringTodo, reviewHistory };
+    for (const [key, cloudRows] of Object.entries(mapping)) {
+      if (typeof cloudRows === 'string') continue; // 本类拉失败，跳过不动
+      const meta = ENTITY[key];
+      const local = meta.local().slice();
+      const byLocalId = {};
+      local.forEach(r => { byLocalId[r.id] = r; });
+      let changed = false;
+      cloudRows.forEach(c => {
+        const lid = c.localId;
+        if (!lid) return;
+        const L = byLocalId[lid];
+        const cTs = tsOf(c, true);
+        const lTs = tsOf(L, false);
+        if (c.deleted) {
+          // 云端标记删除 → 本地也删（如果云端更新时间更新）
+          if (!L || cTs >= lTs) {
+            const idx = local.findIndex(x => x.id === lid);
+            if (idx >= 0) { local.splice(idx, 1); changed = true; delete byLocalId[lid]; }
+          }
+        } else {
+          // 有数据 → 如果云端更新，则覆盖本地的字段
+          const payload = cloudToLocal(c, key);
+          if (!L || cTs >= lTs) {
+            if (L) {
+              const idx = local.findIndex(x => x.id === lid);
+              local[idx] = payload;
+            } else {
+              local.push(payload);
+            }
+            changed = true;
+            byLocalId[lid] = payload;
+          }
+        }
+      });
+      if (changed) meta.setLocal(local);
+    }
+  }
+  // 云端字段去掉 LC 内置的 objectId/ACL/createdAt(LC的)/owner → 返回干净的本地格式
+  function cloudToLocal(c, entityKey) {
+    const { objectId, ACL, owner, localId, deleted, ...rest } = c;
+    const payload = Object.assign({}, rest);
+    payload.id = localId;
+    // LC 的 updatedAt 字符串保留为 updatedAt（本地也有同名字段，格式兼容：都是 ISO 字符串）
+    // 没有的字段补默认
+    if (!payload.createdAt && c.createdAt) payload.createdAt = c.createdAt;
+    return payload;
+  }
+
+  /* ---------- 增量 push：把本地全部数据推到云端（幂等，按 localId 合并+LWW） ----------
+   * 实现：对每条本地记录，先查云端是否存在（按 owner + localId），存在→比较 updatedAt 更新；不存在→新建
+   * 为了节省请求，每批最多 50 条批量（/1.1/batch），LeanCloud 免费版够快
+   */
+  let pushTimer = null;
+  function pushAllDebounced() {
+    if (!isLoggedIn()) return;
+    clearTimeout(pushTimer);
+    pushTimer = setTimeout(() => pushAll().catch(e => _warn('[Sync] push 失败', e.message)), 1500);
+  }
+  async function pushAll() {
+    if (!isLoggedIn()) return;
+    setBadgeState('syncing');
+    const ops = [];
+    for (const [key, meta] of Object.entries(ENTITY)) {
+      const localRows = meta.local();
+      // 先批量查一次：该用户这张表所有 (localId → {objectId, updatedAt, deleted})
+      const cloudIndex = await queryCloudIndex(meta.cls);
+      for (const r of localRows) {
+        const lid = r.id;
+        const c = cloudIndex[lid];
+        const lTs = tsOf(r, false);
+        const cTs = c ? tsOf(c, true) : 0;
+        if (c && c.deleted && lTs >= cTs) {
+          // 本地有，云端被标记删了，但本地更新时间更新 → 恢复
+          const payload = localToCloud(r);
+          payload.deleted = false;
+          ops.push(makeOp('PUT', meta.cls, c.objectId, payload));
+        } else if (c) {
+          // 云端已有，比较时间
+          if (lTs >= cTs) {
+            const payload = localToCloud(r);
+            delete payload.owner; // 已存在不允许改 owner
+            ops.push(makeOp('PUT', meta.cls, c.objectId, payload));
+          }
+        } else {
+          // 云端没有 → 新建。设置 ACL=仅自己可读写，防止数据泄漏
+          const payload = localToCloud(r);
+          payload.owner = { __type: 'Pointer', className: '_User', objectId: session.userId };
+          payload.localId = lid;
+          payload.deleted = false;
+          payload.ACL = { [session.userId]: { read: true, write: true } };
+          ops.push(makeOp('POST', `/1.1/classes/${meta.cls}`, null, payload));
+        }
+      }
+      // 处理删除：云端里没有出现在本地、但云端 deleted=false 的记录，说明本地已物理删 → 软删除云端
+      const localIds = new Set(localRows.map(r => r.id));
+      for (const [lid, c] of Object.entries(cloudIndex)) {
+        if (!localIds.has(lid) && !c.deleted) {
+          ops.push(makeOp('PUT', meta.cls, c.objectId, { deleted: true, updatedAt: new Date().toISOString() }));
+        }
+      }
+    }
+    if (ops.length === 0) { setBadgeState('ok'); return; }
+    // 批量分块
+    let failedCount = 0;
+    for (let i = 0; i < ops.length; i += 50) {
+      const chunk = ops.slice(i, i+50);
+      try {
+        const batchR = await lcRequest('POST', '/1.1/batch', { requests: chunk });
+        // batch 返回 { results: [{success|error}, ...] }，即使 HTTP=200 也可能有单条失败
+        (batchR.results || []).forEach((r, idx) => {
+          if (r && r.error) {
+            failedCount++;
+            _warn('[Sync] batch item', idx, '失败：', r.error);
+          }
+        });
+      } catch(e) {
+        failedCount += chunk.length;
+        _warn('[Sync] batch push 失败', e.message);
+      }
+    }
+    if (failedCount) toast(`⚠️ 同步时有 ${failedCount} 条未成功（不影响本地数据，稍后会自动重试）`);
+    setBadgeState('ok');
+  }
+  function localToCloud(r) {
+    // 复制一份，保留业务字段，确保 updatedAt 存在（LWW 基准）
+    const c = Object.assign({}, r);
+    if (!c.updatedAt) c.updatedAt = new Date().toISOString();
+    if (!c.createdAt) c.createdAt = c.updatedAt;
+    delete c.id; // id 用 localId 字段存
+    return c;
+  }
+  function makeOp(method, clsOrPath, objectId, body) {
+    const path = method === 'POST' ? clsOrPath : `/1.1/classes/${clsOrPath}/${objectId}`;
+    return { method, path, body };
+  }
+  async function queryCloudIndex(cls) {
+    const where = encodeURIComponent(JSON.stringify({ owner: session.userId }));
+    // 只拿关键字段，省带宽
+    const keys = 'localId,updatedAt,deleted,objectId';
+    const r = await lcRequest('GET', `/1.1/classes/${cls}?where=${where}&limit=1000&keys=${keys}`);
+    const idx = {};
+    (r.results || []).forEach(x => { if (x.localId) idx[x.localId] = x; });
+    return idx;
+  }
+
+  /* ---------- UI：同步状态胶囊（放在 header 右上角）+ 登录/配置弹窗 ---------- */
+  function renderBadge() {
+    let el = document.getElementById('syncBadge');
+    if (!el) {
+      el = document.createElement('div');
+      el.id = 'syncBadge';
+      el.className = 'pwa-mode-badge sync-badge';
+      el.style.right = 'auto';
+      el.style.left = 'calc(8px + var(--safe-left, 0px))';
+      el.style.zIndex = 9999;
+      el.setAttribute('role', 'button'); el.setAttribute('tabindex', '0');
+      el.setAttribute('aria-label', '同步状态，点击管理');
+      el.onclick = openSyncPanel;
+      el.addEventListener('keydown', (e) => { if (e.key==='Enter'||e.key===' ') { e.preventDefault(); openSyncPanel(); } });
+      document.body.appendChild(el);
+    }
+    if (!isConfigured()) {
+      el.className = 'pwa-mode-badge sync-badge mode-offline';
+      el.innerHTML = '<span class="dot" aria-hidden="true"></span><span>⚪ 离线模式</span>';
+    } else if (!isLoggedIn()) {
+      el.className = 'pwa-mode-badge sync-badge mode-pending';
+      el.innerHTML = '<span class="dot" aria-hidden="true"></span><span>🔶 未登录</span>';
+    } else {
+      el.className = 'pwa-mode-badge sync-badge mode-ok';
+      const name = (session.username||'').length > 10 ? (session.username.slice(0,10)+'…') : session.username;
+      el.innerHTML = `<span class="dot" aria-hidden="true"></span><span>🟢 ${name}</span>`;
+    }
+  }
+  function setBadgeState(state) {
+    const el = document.getElementById('syncBadge');
+    if (!el) return;
+    if (state === 'syncing') {
+      el.className = 'pwa-mode-badge sync-badge mode-syncing';
+      const name = (session.username||'').slice(0,10);
+      el.innerHTML = `<span class="dot" aria-hidden="true"></span><span>🔄 ${name||'同步中'}</span>`;
+    } else if (state === 'ok') {
+      renderBadge();
+    }
+  }
+
+  function openSyncPanel() {
+    // 动态生成弹窗，避免常驻 DOM
+    const panel = document.getElementById('syncPanel');
+    if (panel) { panel.remove(); }
+    const wrap = document.createElement('div');
+    wrap.id = 'syncPanel';
+    wrap.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:10000;display:flex;align-items:center;justify-content:center;padding:16px;';
+    wrap.onclick = (e) => { if (e.target===wrap) wrap.remove(); };
+    const card = document.createElement('div');
+    card.style.cssText = 'background:#fff;border-radius:12px;padding:20px;width:100%;max-width:420px;max-height:90vh;overflow-y:auto;box-shadow:0 8px 30px rgba(0,0,0,0.2);';
+    const cfgFill = LC_CFG.appId ? `value="${LC_CFG.appId}"` : '';
+    const keyFill = LC_CFG.appKey ? `value="${LC_CFG.appKey}"` : '';
+    const urlFill = LC_CFG.serverURL ? `value="${LC_CFG.serverURL}"` : '';
+    card.innerHTML = `
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+        <h3 style="font-size:16px;color:var(--primary-dark);">☁️ 数据同步设置</h3>
+        <button id="spClose" style="background:none;border:none;font-size:20px;cursor:pointer;line-height:1;">×</button>
+      </div>
+      ${isLoggedIn() ? `
+        <div style="background:#E8F5E9;border:1px solid #C8E6C9;border-radius:8px;padding:10px;margin-bottom:14px;font-size:13px;">
+          ✅ 当前已登录：<b>${session.username||''}</b><br>
+          <span style="color:#555;">手机和电脑登录同一个账号，4 类数据（客户/待办/长期任务/复盘）自动同步。</span>
+        </div>
+        <div style="display:flex;gap:8px;margin-bottom:14px;">
+          <button id="spPull" class="btn btn-sm btn-secondary">🔄 立即从云端拉取</button>
+          <button id="spPush" class="btn btn-sm btn-secondary">📤 立即推送到云端</button>
+          <button id="spLogout" class="btn btn-sm" style="background:#FFEBEE;color:#C62828;">退出登录</button>
+        </div>
+      ` : `
+        <div style="background:#FFF8E1;border:1px solid #FFE082;border-radius:8px;padding:10px;margin-bottom:14px;font-size:13px;color:#5D4037;">
+          ${isConfigured() ? '🔶 已配置云端，登录后开始自动同步' : '⚪ 首次使用请先填写下方 3 项 LeanCloud 配置，然后注册/登录'}
+        </div>
+        <div style="margin-bottom:8px;"><label style="font-size:12px;color:#607D8B;">App ID <span style="color:#C62828;">*</span></label><input id="spAppId" style="width:100%;padding:7px 10px;border:1px solid var(--border);border-radius:6px;font-size:13px;" placeholder="在 LeanCloud 控制台 → 设置 → 应用凭证里复制" ${cfgFill}></div>
+        <div style="margin-bottom:8px;"><label style="font-size:12px;color:#607D8B;">App Key <span style="color:#C62828;">*</span></label><input id="spAppKey" type="password" style="width:100%;padding:7px 10px;border:1px solid var(--border);border-radius:6px;font-size:13px;" placeholder="和 App ID 同一页面可复制" ${keyFill}></div>
+        <div style="margin-bottom:14px;"><label style="font-size:12px;color:#607D8B;">API 服务器地址 <span style="color:#C62828;">*</span></label><input id="spUrl" style="width:100%;padding:7px 10px;border:1px solid var(--border);border-radius:6px;font-size:13px;" placeholder="必填：形如 https://xxxxx.api.lncld.net（和 App ID 在同一个页面里，整串复制）" ${urlFill}></div>
+        <div id="spConfigWarn" style="display:none;background:#FFEBEE;color:#C62828;font-size:12px;padding:6px 10px;border-radius:6px;margin-bottom:12px;"></div>
+        <div style="margin-bottom:10px;font-weight:600;font-size:13px;color:var(--primary-dark);">账号</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:8px;">
+          <input id="spUser" placeholder="用户名（如：张三）" style="padding:7px 10px;border:1px solid var(--border);border-radius:6px;font-size:13px;">
+          <input id="spPass" type="password" placeholder="密码" style="padding:7px 10px;border:1px solid var(--border);border-radius:6px;font-size:13px;">
+        </div>
+        <div style="display:flex;gap:8px;margin-bottom:12px;">
+          <button id="spRegister" class="btn btn-sm btn-secondary">📝 注册新账号</button>
+          <button id="spLogin" class="btn btn-sm btn-primary">🔑 登录</button>
+        </div>
+        <div style="font-size:11px;color:#90A4AE;line-height:1.5;padding-top:8px;border-top:1px dashed var(--border);">
+          <b>接入手册（都是免费额度，一分钱不用花）：</b><br>
+          1. 浏览器打开 <a href="https://console.leancloud.app/login.html" target="_blank" style="color:var(--primary);">console.leancloud.app</a> → 用邮箱注册账号 → 登录 → 「创建应用」(类型选"开发版"，名字随便填，免费)<br>
+          2. 点进刚创建的应用 → 左侧菜单找到 ⚙️ <b>设置 → 应用凭证</b> → 这个页面上有 3 个值：<b>AppID</b>、<b>AppKey</b>、<b>API 服务器地址</b>（长这样：https://xxxxxx.api.lncld.net），分别复制粘贴到上面 3 个输入框里<br>
+          3. 在「账号」下面填你想自己用的用户名和密码（比如 zhangsan / 123456）→ 点「📝 注册新账号」<br>
+          4. 手机和电脑都这样配一遍，<b>用户名+密码一样</b>，两端就开始自动同步啦 ✌️
+        </div>
+      `}
+    `;
+    wrap.appendChild(card);
+    document.body.appendChild(wrap);
+    card.querySelector('#spClose').onclick = () => wrap.remove();
+
+    // 未登录分支
+    if (!isLoggedIn()) {
+      const btnSaveCfg = () => {
+        const id = card.querySelector('#spAppId').value.trim();
+        const k  = card.querySelector('#spAppKey').value.trim();
+        const u  = card.querySelector('#spUrl').value.trim();
+        if (!id || !k) {
+          const w = card.querySelector('#spConfigWarn');
+          w.style.display = 'block';
+          w.textContent = '请先填写 App ID 和 App Key';
+          return false;
+        }
+        LC_CFG.appId = id; LC_CFG.appKey = k; LC_CFG.serverURL = u;
+        renderBadge();
+        return true;
+      };
+      card.querySelector('#spRegister').onclick = async () => {
+        if (!btnSaveCfg()) return;
+        const user = card.querySelector('#spUser').value.trim();
+        const pass = card.querySelector('#spPass').value;
+        if (!user || !pass) { toast('⚠️ 请填写用户名和密码'); return; }
+        try { await register(user, pass); wrap.remove(); } catch(e) { toast('❌ 注册失败：'+e.message); }
+      };
+      card.querySelector('#spLogin').onclick = async () => {
+        if (!btnSaveCfg()) return;
+        const user = card.querySelector('#spUser').value.trim();
+        const pass = card.querySelector('#spPass').value;
+        if (!user || !pass) { toast('⚠️ 请填写用户名和密码'); return; }
+        try { await login(user, pass); wrap.remove(); } catch(e) { toast('❌ 登录失败：'+e.message); }
+      };
+    } else {
+      card.querySelector('#spPull').onclick   = async () => { try { await pullAll(); } catch(e) { toast('❌ 拉取失败：'+e.message); } };
+      card.querySelector('#spPush').onclick   = async () => { try { await pushAll(); toast('✅ 已推送本地数据到云端'); } catch(e) { toast('❌ 推送失败：'+e.message); } };
+      card.querySelector('#spLogout').onclick = () => { logout(); wrap.remove(); };
+    }
+  }
+
+  /* ---------- 启动 boot ---------- */
+  let bootRun = false;
+  async function bootSync() {
+    // 胶囊先渲染上
+    renderBadge();
+    if (!isConfigured() || !isLoggedIn()) return; // 纯离线，零网络请求
+    if (bootRun) return; bootRun = true;
+    // 先检查 session 是否有效（失效则清掉，纯离线 fallback）
+    const ok = await checkMe();
+    if (!ok) { toast('⚠️ 登录状态已过期，请重新登录'); renderBadge(); return; }
+    // 1. 首次拉
+    try { await pullAll(); } catch(e) { _warn('[Sync] boot pull 失败', e.message); setBadgeState('ok'); }
+    // 2. 60s 轮询（轻量全量拉，个人数据量小无所谓）
+    setInterval(() => {
+      if (!document.hidden) pullAll().catch(e => {});
+    }, 60 * 1000);
+    // 3. 回到前台立即拉
+    document.addEventListener('visibilitychange', () => {
+      if (!document.hidden && isLoggedIn()) pullAll().catch(e=>{});
+    });
+  }
+
+  return { bootSync, isLoggedIn, pushAllDebounced, renderBadge, openSyncPanel,
+           // 暴露给调试
+           _pull: pullAll, _push: pushAll, _register: register, _login: login, _logout: logout };
+})();
+window.Sync = Sync;
+
+/* ---------- 4. 钩子：改 4 张表的 saveXXX，保存后异步 push ---------- */
+(function hookSaves() {
+  // 原始 save 函数都操作完 localStorage 了，在末尾追加异步 push（防抖）
+  // saveDB = customers
+  const _saveDB = window.saveDB || (() => {});
+  window.saveDB = function() { const r = _saveDB.apply(this, arguments); Sync.pushAllDebounced(); return r; };
+  // saveTodos
+  const _saveTodos = window.saveTodos || (() => {});
+  window.saveTodos = function() { const r = _saveTodos.apply(this, arguments); Sync.pushAllDebounced(); return r; };
+  // saveRecurring
+  const _saveRecurring = window.saveRecurring || (() => {});
+  window.saveRecurring = function() { const r = _saveRecurring.apply(this, arguments); Sync.pushAllDebounced(); return r; };
+  // saveReviewHistory（是一个带参数 arr 的函数）
+  const _saveReviewHistory = window.saveReviewHistory || (() => {});
+  window.saveReviewHistory = function(arr) { const r = _saveReviewHistory.apply(this, arguments); Sync.pushAllDebounced(); return r; };
+})();
+
+/* ---------- 5. 启动时：刷新 UI 统一入口（pull 后重绘各模块） ---------- */
+function refreshAllUI() {
+  try { renderCustomerList && renderCustomerList(); } catch(e) {}
+  try { refreshCustomerSelects && refreshCustomerSelects(); } catch(e) {}
+  try { renderTodos && renderTodos(); } catch(e) {}
+  try { renderRecurringList && renderRecurringList(); } catch(e) {}
+  try { renderReviewHistory && renderReviewHistory(); } catch(e) {}
+}
+
+/* ---------- 6. 同步层样式：胶囊配色 与 PWA 角标保持一致风格 ---------- */
+(function injectSyncStyles() {
+  if (document.getElementById('syncStyles')) return;
+  const s = document.createElement('style');
+  s.id = 'syncStyles';
+  s.textContent = `
+    .sync-badge { cursor: pointer; position: fixed; top: calc(6px + var(--safe-top, 0px)); }
+    .sync-badge .dot { width:6px; height:6px; border-radius:50%; background:currentColor; opacity:0.7; }
+    .sync-badge.mode-offline  { background: linear-gradient(135deg, #9CA3AF, #6B7280); color:#fff; }
+    .sync-badge.mode-pending  { background: linear-gradient(135deg, #f59e0b, #d97706); color:#fff; }
+    .sync-badge.mode-ok       { background: linear-gradient(135deg, #10b981, #059669); color:#fff; }
+    .sync-badge.mode-syncing  { background: linear-gradient(135deg, #3b82f6, #1d4ed8); color:#fff; animation: pulse-sync 1.5s infinite; }
+    @keyframes pulse-sync { 0%,100% { opacity:1; } 50% { opacity:0.75; } }
+    @media (prefers-reduced-motion: reduce) { .sync-badge.mode-syncing { animation: none; } }
+  `;
+  document.head.appendChild(s);
+})();
+
+/* ---------- 7. 启动入口 ---------- */
+(function startSyncBoot() {
+  injectSyncStyles();
+  Sync.bootSync();
+})();
+</script>
 </body>
 </html>
