@@ -194,7 +194,7 @@ textarea { resize: vertical; min-height: 70px; }
   font-size: 14px;
   font-weight: 500;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: background 0.2s, transform 0.15s, box-shadow 0.2s;
   font-family: inherit;
 }
 .btn-primary {
@@ -212,6 +212,13 @@ textarea { resize: vertical; min-height: 70px; }
 .btn-sm { padding: 6px 12px; font-size: 12px; }
 .btn-block { width: 100%; }
 .btn-row { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 8px; }
+/* 键盘导航焦点指示器：与 tab-item 保持一致的视觉语言 */
+.btn:focus-visible, .todo-btn:focus-visible, .history-del-btn:focus-visible,
+.sub-tab:focus-visible, .history-item:focus-visible, .customer-item:focus-visible,
+.product-card:focus-visible, .backup-btn:focus-visible {
+  outline: 2px solid var(--primary-light);
+  outline-offset: 2px;
+}
 /* ========== 客户标签 ========== */
 .level-tag {
   display: inline-block;
@@ -278,7 +285,7 @@ textarea { resize: vertical; min-height: 70px; }
   border-radius: 8px;
   padding: 10px 12px;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: border-color 0.2s, background 0.2s;
 }
 .customer-item:hover, .customer-item.selected {
   border-color: var(--primary-light);
@@ -318,7 +325,7 @@ textarea { resize: vertical; min-height: 70px; }
   border-radius: 8px;
   padding: 10px;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: border-color 0.2s, transform 0.2s, box-shadow 0.2s;
   text-align: center;
 }
 .product-card:hover {
@@ -386,7 +393,7 @@ textarea { resize: vertical; min-height: 70px; }
   font-size: 12px;
   cursor: pointer;
   white-space: nowrap;
-  transition: all 0.2s;
+  transition: background 0.2s, color 0.2s;
 }
 .sub-tab.active {
   background: var(--primary);
@@ -459,7 +466,7 @@ textarea { resize: vertical; min-height: 70px; }
   display: flex;
   gap: 10px;
   align-items: flex-start;
-  transition: all 0.2s;
+  transition: border-color 0.2s, background 0.2s, opacity 0.2s;
 }
 .todo-item:hover { border-color: var(--primary-light); }
 .todo-item.done { background: #F5F7FA; opacity: 0.75; }
@@ -632,7 +639,7 @@ textarea { resize: vertical; min-height: 70px; }
   margin-bottom: 8px;
   background: #FAFBFC;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: border-color 0.2s, background 0.2s;
 }
 .history-item:hover { border-color: var(--primary-light); background: #E3F2FD; }
 .history-item.active { border-color: var(--primary); background: #E3F2FD; }
@@ -739,7 +746,7 @@ textarea { resize: vertical; min-height: 70px; }
   font-weight: 500;
   cursor: pointer;
   white-space: nowrap;
-  transition: all 0.2s;
+  transition: background 0.2s, transform 0.2s;
 }
 .pwa-update-banner .btn-refresh {
   background: #fff;
@@ -854,7 +861,7 @@ textarea { resize: vertical; min-height: 70px; }
   font-size: 13px;
   cursor: pointer;
   font-weight: 500;
-  transition: all 0.2s;
+  transition: background 0.2s;
 }
 .pwa-install-tip .btn-later {
   background: #f3f4f6;
@@ -895,6 +902,18 @@ textarea { resize: vertical; min-height: 70px; }
 }
 /* 顶部栏右上角避让模式角标（避免被header覆盖） */
 .header { overflow: visible; }
+
+/* ========== 无障碍：尊重用户的减少动画偏好 ========== */
+/* 晕动症/前庭障碍用户在系统层关闭动画时，应用同步关闭过渡与动画 */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+  .module.active { animation: none; }
+}
 </style>
 
 <!-- ========== PWA 元标签 ========== -->
@@ -1654,8 +1673,8 @@ function renderRecurringList() {
       </div>
       <div style="display:flex;gap:4px;align-items:center;">
         <span class="ri-prio ${rt.priority}">${rt.priority}优先级</span>
-        <button class="todo-btn" onclick="toggleRecurringActive('${rt.id}')" title="${rt.active?'暂停':'恢复'}">${rt.active?'⏸️':'▶️'}</button>
-        <button class="todo-btn del" onclick="deleteRecurringTodo('${rt.id}')" title="删除">🗑️</button>
+        <button class="todo-btn" onclick="toggleRecurringActive('${rt.id}')" title="${rt.active?'暂停':'恢复'}" aria-label="${rt.active?'暂停此长期任务':'恢复此长期任务'}">${rt.active?'⏸️':'▶️'}</button>
+        <button class="todo-btn del" onclick="deleteRecurringTodo('${rt.id}')" title="删除" aria-label="删除此长期任务">🗑️</button>
       </div>
     </div>`;
   }).join('');
@@ -2045,7 +2064,7 @@ function renderTodos() {
         </div>
       </div>
       <div class="todo-actions">
-        <button class="todo-btn del" onclick="deleteTodo('${t.id}')" title="删除">🗑️</button>
+        <button class="todo-btn del" onclick="deleteTodo('${t.id}')" title="删除" aria-label="删除此待办">🗑️</button>
       </div>
     </div>`;
   }).join('');
@@ -2506,7 +2525,7 @@ function renderCustomerList() {
         <button class="btn btn-sm btn-secondary" onclick='switchWithCustomer(2, "${c.id}")'>🎯 陌拜</button>
         <button class="btn btn-sm btn-secondary" onclick='switchWithCustomer(3, "${c.id}")'>📦 订货</button>
         <button class="btn btn-sm btn-secondary" onclick='switchWithCustomer(4, "${c.id}")'>🚀 动销</button>
-        <button class="btn btn-sm" style="background:#FFEBEE;color:#D32F2F;" onclick='deleteCustomer("${c.id}")'>🗑️</button>
+        <button class="btn btn-sm" style="background:#FFEBEE;color:#D32F2F;" onclick='deleteCustomer("${c.id}")' aria-label="删除此客户">🗑️</button>
       </div>
     </div>
   `).join('');
@@ -3441,7 +3460,7 @@ function renderReviewHistory() {
         <span class="history-item-date">${r.dateStr}</span>
         <span class="history-item-meta">${r.period}</span>
         <span class="history-item-score ${gradeClass}">${gradeLabel} ${r.score||0}分</span>
-        <button class="history-del-btn" onclick="event.stopPropagation(); deleteReviewHistory('${r.id}')">🗑️</button>
+        <button class="history-del-btn" onclick="event.stopPropagation(); deleteReviewHistory('${r.id}')" aria-label="删除此复盘记录">🗑️</button>
       </div>
       <div class="history-summary">
         拜访${r.visit}家 · 新开发${r.newC}家 · 成交${r.order}单 · 金额¥${r.amount.toLocaleString()}
