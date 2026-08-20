@@ -643,7 +643,190 @@ textarea { resize: vertical; min-height: 70px; }
   cursor: pointer;
   accent-color: #7C4DFF;
 }
+/* ========== PWA 更新提示条 ========== */
+.pwa-update-banner {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+  color: #fff;
+  padding: 10px 16px;
+  z-index: 9999;
+  display: none;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  box-shadow: 0 2px 12px rgba(37, 99, 235, 0.4);
+  animation: slideDown 0.3s ease;
+}
+.pwa-update-banner.show { display: flex; }
+@keyframes slideDown {
+  from { transform: translateY(-100%); }
+  to { transform: translateY(0); }
+}
+.pwa-update-banner .msg { font-size: 13px; flex: 1; line-height: 1.4; }
+.pwa-update-banner .msg strong { display: block; font-size: 14px; margin-bottom: 2px; }
+.pwa-update-banner .btns { display: flex; gap: 8px; flex-shrink: 0; }
+.pwa-update-banner button {
+  border: none;
+  padding: 6px 14px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.2s;
+}
+.pwa-update-banner .btn-refresh {
+  background: #fff;
+  color: #2563eb;
+}
+.pwa-update-banner .btn-refresh:hover { background: #f0f7ff; transform: translateY(-1px); }
+.pwa-update-banner .btn-dismiss {
+  background: rgba(255,255,255,0.2);
+  color: #fff;
+  backdrop-filter: blur(4px);
+}
+.pwa-update-banner .btn-dismiss:hover { background: rgba(255,255,255,0.3); }
+/* ========== PWA 离线指示器 ========== */
+.offline-indicator {
+  position: fixed;
+  bottom: 80px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #374151;
+  color: #fff;
+  padding: 8px 18px;
+  border-radius: 20px;
+  font-size: 12px;
+  z-index: 9998;
+  display: none;
+  align-items: center;
+  gap: 6px;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.2);
+  animation: fadeInUp 0.3s ease;
+}
+.offline-indicator.show { display: flex; }
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translate(-50%, 20px); }
+  to { opacity: 1; transform: translate(-50%, 0); }
+}
+.offline-indicator .dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #f59e0b;
+  animation: pulse 1.5s ease-in-out infinite;
+}
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+/* ========== PWA 安装提示浮层（iOS） ========== */
+.pwa-install-tip {
+  position: fixed;
+  bottom: 20px;
+  left: 16px;
+  right: 16px;
+  background: #fff;
+  border-radius: 14px;
+  padding: 16px;
+  z-index: 9997;
+  display: none;
+  box-shadow: 0 -4px 24px rgba(0,0,0,0.15);
+  animation: slideUp 0.35s ease;
+  max-width: 480px;
+  margin: 0 auto;
+}
+.pwa-install-tip.show { display: block; }
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(40px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.pwa-install-tip .tip-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+.pwa-install-tip .tip-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 10px;
+  background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 22px;
+  flex-shrink: 0;
+}
+.pwa-install-tip .tip-title { font-size: 15px; font-weight: 600; color: #111827; }
+.pwa-install-tip .tip-subtitle { font-size: 12px; color: #6b7280; }
+.pwa-install-tip .tip-steps {
+  background: #f9fafb;
+  border-radius: 10px;
+  padding: 12px;
+  font-size: 13px;
+  color: #374151;
+  line-height: 1.8;
+  margin-bottom: 12px;
+}
+.pwa-install-tip .tip-steps code {
+  background: #e5e7eb;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-family: inherit;
+}
+.pwa-install-tip .tip-footer {
+  display: flex;
+  gap: 8px;
+}
+.pwa-install-tip .tip-footer button {
+  flex: 1;
+  border: none;
+  padding: 10px;
+  border-radius: 8px;
+  font-size: 13px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: all 0.2s;
+}
+.pwa-install-tip .btn-later {
+  background: #f3f4f6;
+  color: #4b5563;
+}
+.pwa-install-tip .btn-later:hover { background: #e5e7eb; }
 </style>
+
+<!-- ========== PWA 元标签 ========== -->
+<link rel="manifest" href="./manifest.json">
+<meta name="theme-color" content="#2563eb">
+<meta name="description" content="华润三九OTC广东区域药店终端销售个人AI工作台 - 客户档案、拓客谈判、动销策划、复盘、产品知识库、待办">
+
+<!-- iOS Safari PWA 支持 -->
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="OTC工作台">
+<link rel="apple-touch-icon" href="./icons/apple-touch-icon.png">
+<link rel="apple-touch-icon" sizes="152x152" href="./icons/apple-touch-icon.png">
+<link rel="apple-touch-icon" sizes="180x180" href="./icons/apple-touch-icon.png">
+<link rel="apple-touch-icon" sizes="167x167" href="./icons/apple-touch-icon.png">
+
+<!-- Android Chrome PWA 支持 -->
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="application-name" content="OTC医药销售AI工作台">
+<link rel="icon" type="image/png" sizes="192x192" href="./icons/icon-192.png">
+<link rel="icon" type="image/png" sizes="512x512" href="./icons/icon-512.png">
+<link rel="shortcut icon" href="./icons/icon-192.png">
+
+<!-- 启动画面颜色 -->
+<meta name="msapplication-TileColor" content="#2563eb">
+<meta name="msapplication-tap-highlight" content="no">
+
+<!-- 防止Safari手机号识别干扰 -->
+<meta name="format-detection" content="telephone=no">
 </head>
 <body>
 
@@ -3272,6 +3455,227 @@ function init() {
   renderReviewHistory();
 }
 init();
+
+/* =============================================
+ *    PWA 功能：Service Worker 注册、更新检测、
+ *    离线检测、安装提示（Android / iOS）
+ * ============================================= */
+(function initPWA() {
+  // ---------- DOM：插入 PWA 相关组件 ----------
+  const bannerHTML = `
+    <!-- PWA 版本更新提示条 -->
+    <div id="pwaUpdateBanner" class="pwa-update-banner" role="alert">
+      <div class="msg">
+        <strong>✨ 发现新版本</strong>
+        点击「立即更新」加载最新功能和优化
+      </div>
+      <div class="btns">
+        <button class="btn-dismiss" onclick="dismissPWAUpdate()">稍后</button>
+        <button class="btn-refresh" onclick="applyPWAUpdate()">立即更新</button>
+      </div>
+    </div>
+    <!-- 离线状态指示器 -->
+    <div id="offlineIndicator" class="offline-indicator">
+      <span class="dot"></span>
+      <span>📴 离线模式 · 数据已自动保存本地</span>
+    </div>
+    <!-- iOS Safari 添加到主屏幕提示 -->
+    <div id="pwaInstallTip" class="pwa-install-tip">
+      <div class="tip-header">
+        <div class="tip-icon">🏥</div>
+        <div>
+          <div class="tip-title">添加到主屏幕</div>
+          <div class="tip-subtitle">像原生App一样使用，离线也能访问</div>
+        </div>
+      </div>
+      <div class="tip-steps">
+        1. 点击浏览器底部的 <code>分享</code> 按钮 ⎋<br>
+        2. 向下滑动，选择 <code>添加到主屏幕</code> ➕<br>
+        3. 点击右上角 <code>添加</code>，桌面即可启动
+      </div>
+      <div class="tip-footer">
+        <button class="btn-later" onclick="hideInstallTip()">我知道了</button>
+      </div>
+    </div>`;
+  document.body.insertAdjacentHTML('beforeend', bannerHTML);
+
+  // ---------- 全局变量 ----------
+  let newWorker = null;     // 等待激活的新 SW
+  let refreshing = false;   // 防止刷新死循环
+  let deferredPrompt = null; // Android 安装提示事件
+
+  // ---------- 1. Service Worker 注册 ----------
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('./sw.js')
+        .then((registration) => {
+          console.log('[PWA] Service Worker 注册成功：', registration.scope);
+
+          // 检测是否有等待中的新版本 SW
+          if (registration.waiting) {
+            console.log('[PWA] 检测到等待中的新版本');
+            newWorker = registration.waiting;
+            showUpdateBanner();
+          }
+          // 检测安装中的 SW，监听其变为 activated
+          if (registration.installing) {
+            registration.installing.addEventListener('statechange', (e) => {
+              if (e.target.state === 'installed' && navigator.serviceWorker.controller) {
+                console.log('[PWA] 新 SW 已安装，等待激活');
+                newWorker = registration.waiting || e.target;
+                showUpdateBanner();
+              }
+            });
+          }
+          // 监听更新事件（后台发现新版本时触发）
+          registration.addEventListener('updatefound', () => {
+            console.log('[PWA] 发现新版本，正在下载...');
+            const installing = registration.installing;
+            installing.addEventListener('statechange', (e) => {
+              if (e.target.state === 'installed' && navigator.serviceWorker.controller) {
+                console.log('[PWA] 新版本下载完成');
+                newWorker = registration.waiting || e.target;
+                showUpdateBanner();
+              }
+            });
+          });
+        })
+        .catch((err) => {
+          console.warn('[PWA] Service Worker 注册失败（可忽略）：', err.message);
+        });
+
+      // SW 接管后自动刷新页面以加载缓存内容
+      navigator.serviceWorker.addEventListener('controllerchange', () => {
+        if (!refreshing) {
+          refreshing = true;
+          window.location.reload();
+        }
+      });
+    });
+
+    // 页面每小时主动检查一次 SW 更新
+    setInterval(() => {
+      if (navigator.serviceWorker.controller) {
+        navigator.serviceWorker.getRegistration().then(reg => {
+          if (reg) reg.update().catch(() => {});
+        });
+      }
+    }, 60 * 60 * 1000);
+  }
+
+  // ---------- 2. 更新提示条 ----------
+  function showUpdateBanner() {
+    const banner = document.getElementById('pwaUpdateBanner');
+    if (banner) setTimeout(() => banner.classList.add('show'), 800);
+  }
+  window.applyPWAUpdate = function() {
+    if (newWorker) {
+      newWorker.postMessage({ type: 'SKIP_WAITING' });
+    } else {
+      window.location.reload();
+    }
+  };
+  window.dismissPWAUpdate = function() {
+    const banner = document.getElementById('pwaUpdateBanner');
+    if (banner) banner.classList.remove('show');
+  };
+
+  // ---------- 3. 离线 / 在线检测 ----------
+  function updateOnlineStatus() {
+    const indicator = document.getElementById('offlineIndicator');
+    if (!indicator) return;
+    if (navigator.onLine) {
+      indicator.classList.remove('show');
+    } else {
+      indicator.classList.add('show');
+    }
+  }
+  window.addEventListener('online', updateOnlineStatus);
+  window.addEventListener('offline', updateOnlineStatus);
+  updateOnlineStatus();
+
+  // ---------- 4. Android Chrome 安装提示 ----------
+  window.addEventListener('beforeinstallprompt', (e) => {
+    // 阻止浏览器默认的安装弹框，我们自定义时机
+    e.preventDefault();
+    deferredPrompt = e;
+    console.log('[PWA] 捕获到安装提示事件，可稍后触发');
+    // 延迟一点显示，避免页面刚加载就打扰用户
+    setTimeout(() => showAndroidInstallTip(), 2000);
+  });
+
+  function showAndroidInstallTip() {
+    if (!deferredPrompt) return;
+    if (localStorage.getItem('pwa_install_dismissed')) return;
+    // 如果已经在 standalone 模式（已安装），不再提示
+    if (window.matchMedia('(display-mode: standalone)').matches) return;
+
+    // 复用 iOS 提示的浮层结构，动态替换内容
+    const tip = document.getElementById('pwaInstallTip');
+    if (!tip) return;
+    tip.querySelector('.tip-steps').innerHTML = `
+      点击下方按钮将 OTC工作台 安装到桌面，<br>
+      像 App 一样全屏使用，支持离线访问 📲`;
+    const footer = tip.querySelector('.tip-footer');
+    footer.innerHTML = `
+      <button class="btn-later" onclick="hideInstallTip()">稍后再说</button>
+      <button class="btn-refresh" style="background:#2563eb;color:#fff;" onclick="triggerAndroidInstall()">立即安装</button>`;
+    tip.classList.add('show');
+  }
+
+  window.triggerAndroidInstall = async function() {
+    if (!deferredPrompt) return;
+    deferredPrompt.prompt();
+    const { outcome } = await deferredPrompt.userChoice;
+    console.log('[PWA] 用户安装选择：', outcome);
+    deferredPrompt = null;
+    hideInstallTip();
+  };
+
+  // ---------- 5. iOS Safari 安装提示 ----------
+  function isIOS() {
+    return /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+  }
+  function isInStandalone() {
+    return (window.navigator.standalone === true) ||
+           window.matchMedia('(display-mode: standalone)').matches;
+  }
+  function showIOSInstallTip() {
+    if (!isIOS()) return;
+    if (isInStandalone()) return;
+    if (localStorage.getItem('pwa_install_dismissed')) return;
+
+    // 访问 3 次后再提示，避免第一次就打扰
+    const visitCount = parseInt(localStorage.getItem('pwa_visit_count') || '0', 10) + 1;
+    localStorage.setItem('pwa_visit_count', visitCount);
+    if (visitCount < 3) return;
+
+    const tip = document.getElementById('pwaInstallTip');
+    if (tip) setTimeout(() => tip.classList.add('show'), 2500);
+  }
+  window.hideInstallTip = function() {
+    const tip = document.getElementById('pwaInstallTip');
+    if (tip) tip.classList.remove('show');
+    localStorage.setItem('pwa_install_dismissed', Date.now().toString());
+  };
+
+  // 启动 iOS 检测
+  if (document.readyState === 'complete' || document.readyState === 'interactive') {
+    showIOSInstallTip();
+  } else {
+    document.addEventListener('DOMContentLoaded', showIOSInstallTip);
+  }
+
+  // ---------- 6. PWA 首次安装成功提示 ----------
+  window.addEventListener('appinstalled', () => {
+    console.log('[PWA] 应用已成功安装到桌面');
+    deferredPrompt = null;
+    hideInstallTip();
+    toast('📲 安装成功！请从桌面图标启动，体验全屏模式');
+  });
+
+  console.log('[PWA] 初始化脚本加载完成');
+})();
 </script>
 </body>
 </html>
