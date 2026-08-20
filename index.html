@@ -22,6 +22,11 @@
   --a-level: #E53935;
   --b-level: #FB8C00;
   --c-level: #1E88E5;
+  --white: #ffffff;
+  --tag-bg: #E3F2FD;
+  --input-bg: #FAFBFC;
+  --shadow-sm: 0 1px 4px rgba(0,0,0,0.06);
+  --shadow-md: 0 2px 8px rgba(0,0,0,0.15);
   /* 移动端安全区（状态栏/刘海/底部横条），viewport-fit=cover 时生效 */
   --safe-top: env(safe-area-inset-top, 0px);
   --safe-bottom: env(safe-area-inset-bottom, 0px);
@@ -78,12 +83,12 @@ body {
 /* ========== 顶部栏 ========== */
 .header {
   background: linear-gradient(135deg, var(--primary-dark) 0%, var(--primary) 100%);
-  color: #fff;
+  color: var(--white);
   padding: 14px 16px;
   position: sticky;
   top: 0;
   z-index: 100;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+  box-shadow: var(--shadow-md);
 }
 .header h1 { font-size: 17px; font-weight: 600; margin-bottom: 2px; }
 .header p { font-size: 12px; opacity: 0.85; }
@@ -94,6 +99,7 @@ body {
   border-radius: 10px;
   font-size: 11px;
   margin-top: 6px;
+  font-weight: 400;
 }
 /* ========== 主内容区 ========== */
 .container {
@@ -122,7 +128,7 @@ body {
   border-radius: 10px;
   padding: 14px;
   margin-bottom: 12px;
-  box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+  box-shadow: var(--shadow-sm);
 }
 .card-title {
   font-size: 15px;
@@ -136,7 +142,7 @@ body {
   padding-left: 10px;
 }
 .card-title .tag {
-  background: #E3F2FD;
+  background: var(--tag-bg);
   color: var(--primary);
   font-size: 11px;
   padding: 2px 8px;
@@ -165,14 +171,15 @@ input, select, textarea {
   border-radius: 7px;
   font-size: 14px;
   font-family: inherit;
-  background: #FAFBFC;
-  transition: border-color 0.2s, background 0.2s;
+  background: var(--input-bg);
+  transition: border-color 0.2s, background 0.2s, box-shadow 0.2s;
   color: var(--text);
 }
 input:focus, select:focus, textarea:focus {
   outline: none;
   border-color: var(--primary-light);
-  background: #fff;
+  background: var(--white);
+  box-shadow: 0 0 0 3px rgba(21,101,192,0.12);
 }
 textarea { resize: vertical; min-height: 70px; }
 /* ========== 按钮 ========== */
@@ -354,7 +361,7 @@ textarea { resize: vertical; min-height: 70px; }
   cursor: pointer;
   color: var(--text-secondary);
   font-size: 10px;
-  transition: color 0.2s;
+  transition: color 0.2s, border-top-color 0.2s;
   border-top: 2px solid transparent;
 }
 .tab-item .tab-icon { font-size: 20px; margin-bottom: 2px; }
@@ -362,6 +369,8 @@ textarea { resize: vertical; min-height: 70px; }
   color: var(--primary);
   border-top-color: var(--primary);
 }
+.tab-item:active { transform: scale(0.93); }
+.tab-item:focus-visible { outline: 2px solid var(--primary-light); outline-offset: -2px; border-radius: 4px; }
 /* ========== 工具子标签页 ========== */
 .sub-tabs {
   display: flex;
@@ -597,12 +606,14 @@ textarea { resize: vertical; min-height: 70px; }
   font-size: 11px;
   cursor: pointer;
   font-family: inherit;
-  transition: all 0.2s;
+  transition: background 0.2s, border-color 0.2s;
   display: inline-flex;
   align-items: center;
   gap: 3px;
 }
 .backup-btn:hover { background: rgba(255,255,255,0.32); }
+.backup-btn:active { transform: scale(0.96); }
+.backup-btn:focus-visible { outline: 2px solid var(--white); outline-offset: 2px; }
 .backup-info {
   font-size: 10px;
   opacity: 0.75;
@@ -928,8 +939,8 @@ textarea { resize: vertical; min-height: 70px; }
 <body>
 
 <!-- ========== PWA 运行模式角标（右上角，点一下可永久隐藏） ========== -->
-<div id="pwaModeBadge" class="pwa-mode-badge mode-browser" onclick="hidePwaModeBadge()" style="display:inline-flex;">
-  <span class="dot"></span>
+<div id="pwaModeBadge" class="pwa-mode-badge mode-browser" onclick="hidePwaModeBadge()" style="display:inline-flex;" role="button" tabindex="0" aria-label="PWA运行模式：检测中，点击隐藏角标">
+  <span class="dot" aria-hidden="true"></span>
   <span id="pwaModeBadgeText">检测中...</span>
 </div>
 
@@ -1504,29 +1515,29 @@ textarea { resize: vertical; min-height: 70px; }
 </div>
 
 <!-- 移动端底部导航 / 桌面端侧边导航 -->
-<div class="tab-bar" id="tabBar">
-  <div class="tab-item active" data-module="1">
-    <span class="tab-icon">📋</span><span>客户档案</span>
+<nav class="tab-bar" id="tabBar" role="tablist" aria-label="功能模块导航">
+  <div class="tab-item active" data-module="1" role="tab" tabindex="0" aria-selected="true" aria-controls="module-1">
+    <span class="tab-icon" aria-hidden="true">📋</span><span>客户档案</span>
   </div>
-  <div class="tab-item" data-module="2">
-    <span class="tab-icon">🎯</span><span>陌拜工具</span>
+  <div class="tab-item" data-module="2" role="tab" tabindex="0" aria-selected="false" aria-controls="module-2">
+    <span class="tab-icon" aria-hidden="true">🎯</span><span>陌拜工具</span>
   </div>
-  <div class="tab-item" data-module="3">
-    <span class="tab-icon">📦</span><span>订货方案</span>
+  <div class="tab-item" data-module="3" role="tab" tabindex="0" aria-selected="false" aria-controls="module-3">
+    <span class="tab-icon" aria-hidden="true">📦</span><span>订货方案</span>
   </div>
-  <div class="tab-item" data-module="4">
-    <span class="tab-icon">🚀</span><span>动销策划</span>
+  <div class="tab-item" data-module="4" role="tab" tabindex="0" aria-selected="false" aria-controls="module-4">
+    <span class="tab-icon" aria-hidden="true">🚀</span><span>动销策划</span>
   </div>
-  <div class="tab-item" data-module="5">
-    <span class="tab-icon">📈</span><span>销售复盘</span>
+  <div class="tab-item" data-module="5" role="tab" tabindex="0" aria-selected="false" aria-controls="module-5">
+    <span class="tab-icon" aria-hidden="true">📈</span><span>销售复盘</span>
   </div>
-  <div class="tab-item" data-module="6">
-    <span class="tab-icon">📚</span><span>产品知识库</span>
+  <div class="tab-item" data-module="6" role="tab" tabindex="0" aria-selected="false" aria-controls="module-6">
+    <span class="tab-icon" aria-hidden="true">📚</span><span>产品知识库</span>
   </div>
-  <div class="tab-item" data-module="8">
-    <span class="tab-icon">📝</span><span>每日待办</span>
+  <div class="tab-item" data-module="8" role="tab" tabindex="0" aria-selected="false" aria-controls="module-8">
+    <span class="tab-icon" aria-hidden="true">📝</span><span>每日待办</span>
   </div>
-</div>
+</nav>
 
 <!-- 启动待办提醒 · 强制模态框 -->
 <div class="modal-mask" id="startup_modal" style="display:none;">
@@ -1552,6 +1563,11 @@ textarea { resize: vertical; min-height: 70px; }
 <div class="toast" id="toast"></div>
 
 <script>
+/* ============ 调试开关：生产环境关闭，需调试时在控制台 localStorage.setItem('debug','1') ============ */
+const DEBUG = localStorage.getItem('debug') === '1';
+const _log = (...a) => { if (DEBUG) console.log(...a); };
+const _warn = (...a) => { if (DEBUG) console.warn(...a); };
+
 /* ============ 全局数据 ============ */
 let customers = JSON.parse(localStorage.getItem('otc_customers') || '[]');
 let currentCustomerId = null;
@@ -1705,7 +1721,7 @@ function generateRecurringTodos() {
   if (generated > 0) {
     saveTodos();
     saveRecurring();
-    console.log(`[长期待办] 今日自动生成 ${generated} 条待办`);
+    _log(`[长期待办] 今日自动生成 ${generated} 条待办`);
   }
   return generated;
 }
@@ -2372,16 +2388,28 @@ function resetForm(prefix) {
 
 /* ============ Tab 切换 ============ */
 document.querySelectorAll('.tab-item').forEach(tab => {
+  // 点击切换
   tab.addEventListener('click', () => {
     if (startupModalLocked) {
       toast('🔒 请先在弹窗中确认待办事项，再使用其他功能');
       return;
     }
-    document.querySelectorAll('.tab-item').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.tab-item').forEach(t => {
+      t.classList.remove('active');
+      t.setAttribute('aria-selected', 'false');
+    });
     document.querySelectorAll('.module').forEach(m => m.classList.remove('active'));
     tab.classList.add('active');
+    tab.setAttribute('aria-selected', 'true');
     document.getElementById('module-' + tab.dataset.module).classList.add('active');
     window.scrollTo({ top: 0, behavior: 'smooth' });
+  });
+  // 键盘支持：Enter/Space 触发切换
+  tab.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      tab.click();
+    }
   });
 });
 
@@ -3645,7 +3673,7 @@ init();
     badge.classList.add(info.cls);
     text.textContent = info.txt;
     badge.title = info.tip;
-    console.log('[PWA] 当前运行模式：', mode, '|', info.tip);
+    _log('[PWA] 当前运行模式：', mode, '|', info.tip);
     // 首次进入 5 秒后，若不是 standalone/fullscreen 则弹一次明确提示（只读一次）
     if (!localStorage.getItem('pwa_mode_tip_shown')) {
       localStorage.setItem('pwa_mode_tip_shown','1');
@@ -3686,11 +3714,11 @@ init();
     window.addEventListener('load', () => {
       navigator.serviceWorker.register('./sw.js')
         .then((registration) => {
-          console.log('[PWA] Service Worker 注册成功：', registration.scope);
+          _log('[PWA] Service Worker 注册成功：', registration.scope);
 
           // 检测是否有等待中的新版本 SW
           if (registration.waiting) {
-            console.log('[PWA] 检测到等待中的新版本');
+            _log('[PWA] 检测到等待中的新版本');
             newWorker = registration.waiting;
             showUpdateBanner();
           }
@@ -3698,7 +3726,7 @@ init();
           if (registration.installing) {
             registration.installing.addEventListener('statechange', (e) => {
               if (e.target.state === 'installed' && navigator.serviceWorker.controller) {
-                console.log('[PWA] 新 SW 已安装，等待激活');
+                _log('[PWA] 新 SW 已安装，等待激活');
                 newWorker = registration.waiting || e.target;
                 showUpdateBanner();
               }
@@ -3706,11 +3734,11 @@ init();
           }
           // 监听更新事件（后台发现新版本时触发）
           registration.addEventListener('updatefound', () => {
-            console.log('[PWA] 发现新版本，正在下载...');
+            _log('[PWA] 发现新版本，正在下载...');
             const installing = registration.installing;
             installing.addEventListener('statechange', (e) => {
               if (e.target.state === 'installed' && navigator.serviceWorker.controller) {
-                console.log('[PWA] 新版本下载完成');
+                _log('[PWA] 新版本下载完成');
                 newWorker = registration.waiting || e.target;
                 showUpdateBanner();
               }
@@ -3781,7 +3809,7 @@ init();
     deferredPrompt = e;
     window.__pwaPrompt.deferred = e;
     window.__pwaPrompt.capturedAt = Date.now();
-    console.log('[PWA] ✅ 捕获到 beforeinstallprompt 事件，已可以触发安装');
+    _log('[PWA] ✅ 捕获到 beforeinstallprompt 事件，已可以触发安装');
     // 延迟一点显示底部浮层，避免页面刚加载就打扰
     setTimeout(() => showAndroidInstallTip(), 2000);
   });
@@ -3835,9 +3863,9 @@ init();
 
     try {
       deferredPrompt.prompt();
-      console.log('[PWA] 🟢 prompt() 已调用，等待用户选择...');
+      _log('[PWA] 🟢 prompt() 已调用，等待用户选择...');
       const { outcome } = await deferredPrompt.userChoice;
-      console.log('[PWA] 用户安装选择：', outcome);
+      _log('[PWA] 用户安装选择：', outcome);
       if (outcome === 'accepted') {
         toast('✅ 已接受安装，桌面图标生成中... 成功后从桌面启动');
         window.__pwaPrompt.installed = true;
@@ -3917,7 +3945,7 @@ init();
 
   // ---------- 6. PWA 首次安装成功提示 ----------
   window.addEventListener('appinstalled', () => {
-    console.log('[PWA] 应用已成功安装到桌面');
+    _log('[PWA] 应用已成功安装到桌面');
     deferredPrompt = null;
     window.__pwaPrompt.deferred = null;
     window.__pwaPrompt.installed = true;
@@ -3925,7 +3953,7 @@ init();
     toast('📲 安装成功！请从桌面图标启动，体验全屏模式');
   });
 
-  console.log('[PWA] 初始化脚本加载完成，浏览器自动弹出安装提示或通过菜单「安装应用」可安装到桌面');
+  _log('[PWA] 初始化脚本加载完成，浏览器自动弹出安装提示或通过菜单「安装应用」可安装到桌面');
 })();
 </script>
 </body>
