@@ -1,0 +1,3277 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>OTC医药销售个人AI工作台 · 华润三九</title>
+<style>
+/* ========== 全局样式 ========== */
+* { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+:root {
+  --primary: #1565C0;
+  --primary-light: #42A5F5;
+  --primary-dark: #0D47A1;
+  --success: #2E7D32;
+  --warning: #F57C00;
+  --danger: #C62828;
+  --bg: #F5F7FA;
+  --card: #FFFFFF;
+  --text: #263238;
+  --text-secondary: #607D8B;
+  --border: #E0E6ED;
+  --a-level: #E53935;
+  --b-level: #FB8C00;
+  --c-level: #1E88E5;
+}
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  font-size: 14px;
+  line-height: 1.6;
+  min-height: 100vh;
+  padding-bottom: 70px;
+}
+/* ========== 顶部栏 ========== */
+.header {
+  background: linear-gradient(135deg, var(--primary-dark) 0%, var(--primary) 100%);
+  color: #fff;
+  padding: 14px 16px;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+}
+.header h1 { font-size: 17px; font-weight: 600; margin-bottom: 2px; }
+.header p { font-size: 12px; opacity: 0.85; }
+.header .status {
+  display: inline-block;
+  background: rgba(255,255,255,0.2);
+  padding: 2px 8px;
+  border-radius: 10px;
+  font-size: 11px;
+  margin-top: 6px;
+}
+/* ========== 主内容区 ========== */
+.container {
+  padding: 12px;
+  max-width: 900px;
+  margin: 0 auto;
+}
+.module { display: none; }
+.module.active { display: block; animation: fadeIn 0.25s ease; }
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+/* ========== 卡片 ========== */
+.card {
+  background: var(--card);
+  border-radius: 10px;
+  padding: 14px;
+  margin-bottom: 12px;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+}
+.card-title {
+  font-size: 15px;
+  font-weight: 600;
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  color: var(--primary-dark);
+  border-left: 3px solid var(--primary);
+  padding-left: 10px;
+}
+.card-title .tag {
+  background: #E3F2FD;
+  color: var(--primary);
+  font-size: 11px;
+  padding: 2px 8px;
+  border-radius: 10px;
+  font-weight: 400;
+}
+/* ========== 表单 ========== */
+.form-group { margin-bottom: 12px; }
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+label {
+  display: block;
+  font-size: 12px;
+  color: var(--text-secondary);
+  margin-bottom: 5px;
+  font-weight: 500;
+}
+label .req { color: var(--danger); margin-left: 2px; }
+input, select, textarea {
+  width: 100%;
+  padding: 9px 11px;
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  font-size: 14px;
+  font-family: inherit;
+  background: #FAFBFC;
+  transition: border-color 0.2s, background 0.2s;
+  color: var(--text);
+}
+input:focus, select:focus, textarea:focus {
+  outline: none;
+  border-color: var(--primary-light);
+  background: #fff;
+}
+textarea { resize: vertical; min-height: 70px; }
+/* ========== 按钮 ========== */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  padding: 10px 18px;
+  border: none;
+  border-radius: 7px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-family: inherit;
+}
+.btn-primary {
+  background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+  color: #fff;
+  box-shadow: 0 2px 6px rgba(21,101,192,0.3);
+}
+.btn-primary:active { transform: scale(0.97); }
+.btn-secondary {
+  background: #ECEFF1;
+  color: var(--text);
+}
+.btn-success { background: var(--success); color: #fff; }
+.btn-warning { background: var(--warning); color: #fff; }
+.btn-sm { padding: 6px 12px; font-size: 12px; }
+.btn-block { width: 100%; }
+.btn-row { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 8px; }
+/* ========== 客户标签 ========== */
+.level-tag {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 10px;
+  font-size: 11px;
+  font-weight: 600;
+  color: #fff;
+}
+.level-A { background: var(--a-level); }
+.level-B { background: var(--b-level); }
+.level-C { background: var(--c-level); }
+/* ========== 输出区域 ========== */
+.output-box {
+  background: #FAFBFC;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 12px;
+  margin-top: 12px;
+  font-size: 13px;
+  white-space: pre-wrap;
+  word-break: break-all;
+  max-height: 500px;
+  overflow-y: auto;
+  line-height: 1.7;
+}
+.output-box h3 {
+  font-size: 14px;
+  color: var(--primary-dark);
+  margin: 10px 0 6px 0;
+  padding-bottom: 4px;
+  border-bottom: 1px dashed var(--border);
+}
+.output-box h3:first-child { margin-top: 0; }
+.output-box table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+  margin: 8px 0;
+}
+.output-box th, .output-box td {
+  border: 1px solid var(--border);
+  padding: 6px 8px;
+  text-align: left;
+}
+.output-box th {
+  background: #E3F2FD;
+  color: var(--primary-dark);
+  font-weight: 600;
+}
+.output-box ul, .output-box ol { padding-left: 20px; margin: 6px 0; }
+.output-box li { margin: 3px 0; }
+.output-tools {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+  margin-bottom: 8px;
+}
+/* ========== 客户列表 ========== */
+.customer-list { display: flex; flex-direction: column; gap: 8px; }
+.customer-item {
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 10px 12px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.customer-item:hover, .customer-item.selected {
+  border-color: var(--primary-light);
+  background: #F5FAFF;
+}
+.customer-item .name-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 4px;
+}
+.customer-item .name { font-weight: 600; font-size: 14px; }
+.customer-item .meta { font-size: 12px; color: var(--text-secondary); }
+.customer-item .actions {
+  display: flex;
+  gap: 6px;
+  margin-top: 6px;
+  padding-top: 6px;
+  border-top: 1px dashed var(--border);
+}
+.empty-state {
+  text-align: center;
+  padding: 30px 20px;
+  color: var(--text-secondary);
+  font-size: 13px;
+}
+.empty-state .icon { font-size: 40px; margin-bottom: 8px; opacity: 0.5; }
+/* ========== 产品搜索 ========== */
+.product-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 10px;
+}
+.product-card {
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 10px;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-align: center;
+}
+.product-card:hover {
+  border-color: var(--primary-light);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+}
+.product-card .p-img {
+  width: 60px;
+  height: 60px;
+  margin: 0 auto 6px;
+  background: linear-gradient(135deg, #E3F2FD, #BBDEFB);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+}
+.product-card .p-name { font-weight: 600; font-size: 13px; color: var(--primary-dark); }
+.product-card .p-cat { font-size: 11px; color: var(--text-secondary); margin-top: 2px; }
+/* ========== 底部导航（移动端） ========== */
+.tab-bar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: #fff;
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  box-shadow: 0 -2px 10px rgba(0,0,0,0.08);
+  z-index: 100;
+  padding-bottom: env(safe-area-inset-bottom);
+}
+.tab-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 8px 2px;
+  cursor: pointer;
+  color: var(--text-secondary);
+  font-size: 10px;
+  transition: color 0.2s;
+  border-top: 2px solid transparent;
+}
+.tab-item .tab-icon { font-size: 20px; margin-bottom: 2px; }
+.tab-item.active {
+  color: var(--primary);
+  border-top-color: var(--primary);
+}
+/* ========== 工具子标签页 ========== */
+.sub-tabs {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 12px;
+  overflow-x: auto;
+  padding-bottom: 4px;
+}
+.sub-tab {
+  padding: 6px 12px;
+  background: #ECEFF1;
+  border-radius: 16px;
+  font-size: 12px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.2s;
+}
+.sub-tab.active {
+  background: var(--primary);
+  color: #fff;
+}
+/* ========== Toast提示 ========== */
+.toast {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: rgba(0,0,0,0.8);
+  color: #fff;
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-size: 13px;
+  z-index: 9999;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.25s;
+}
+.toast.show { opacity: 1; }
+/* ========== 桌面端适配 ========== */
+@media (min-width: 768px) {
+  body { padding-bottom: 0; padding-left: 140px; }
+  .tab-bar {
+    top: 0;
+    left: 0;
+    right: auto;
+    bottom: 0;
+    width: 140px;
+    grid-template-columns: 1fr;
+    grid-auto-rows: min-content;
+    align-content: start;
+    padding-top: 80px;
+    box-shadow: 2px 0 10px rgba(0,0,0,0.08);
+  }
+  .tab-item {
+    flex-direction: row;
+    justify-content: flex-start;
+    gap: 8px;
+    padding: 14px 16px;
+    font-size: 13px;
+    border-top: none;
+    border-left: 3px solid transparent;
+  }
+  .tab-item.active { border-top: none; border-left-color: var(--primary); }
+  .tab-item .tab-icon { margin-bottom: 0; }
+  .header {
+    padding: 18px 24px;
+  }
+  .header h1 { font-size: 20px; }
+  .container { padding: 20px; }
+  .card { padding: 20px; margin-bottom: 16px; }
+  .form-row { grid-template-columns: 1fr 1fr 1fr; }
+  .product-grid { grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); }
+}
+/* 隐藏滚动条美化 */
+.sub-tabs::-webkit-scrollbar { display: none; }
+.output-box::-webkit-scrollbar { width: 5px; }
+.output-box::-webkit-scrollbar-thumb { background: #CFD8DC; border-radius: 3px; }
+
+/* ========== 待办任务样式 ========== */
+.todo-item {
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 10px 12px;
+  margin-bottom: 8px;
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  transition: all 0.2s;
+}
+.todo-item:hover { border-color: var(--primary-light); }
+.todo-item.done { background: #F5F7FA; opacity: 0.75; }
+.todo-item.done .todo-content-text { text-decoration: line-through; color: #90A4AE; }
+.todo-check {
+  width: 22px; height: 22px;
+  flex-shrink: 0;
+  margin-top: 2px;
+  cursor: pointer;
+  accent-color: var(--success);
+}
+.todo-content { flex: 1; min-width: 0; }
+.todo-content-text {
+  font-weight: 500;
+  font-size: 14px;
+  color: var(--text);
+  word-break: break-all;
+  line-height: 1.5;
+}
+.todo-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 5px;
+  font-size: 11px;
+  color: var(--text-secondary);
+  align-items: center;
+}
+.prio-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  padding: 2px 7px;
+  border-radius: 10px;
+  font-weight: 600;
+  font-size: 11px;
+  color: #fff;
+}
+.prio-高 { background: #E53935; }
+.prio-中 { background: #FB8C00; }
+.prio-低 { background: #43A047; }
+.cust-badge {
+  background: #E3F2FD;
+  color: var(--primary-dark);
+  padding: 2px 7px;
+  border-radius: 10px;
+}
+.date-badge {
+  background: #ECEFF1;
+  padding: 2px 7px;
+  border-radius: 10px;
+}
+.date-badge.overdue { background: #FFEBEE; color: #C62828; font-weight: 600; }
+.date-badge.today { background: #FFF3E0; color: #E65100; font-weight: 600; }
+.todo-actions {
+  display: flex;
+  gap: 5px;
+  flex-shrink: 0;
+}
+.todo-btn {
+  padding: 4px 8px;
+  font-size: 12px;
+  border-radius: 5px;
+  border: none;
+  cursor: pointer;
+  background: #F5F7FA;
+  color: var(--text-secondary);
+}
+.todo-btn:hover { background: #ECEFF1; color: var(--text); }
+.todo-btn.del:hover { background: #FFEBEE; color: #C62828; }
+
+/* ========== 模态框样式 ========== */
+.modal-mask {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.55);
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  animation: fadeIn 0.25s ease;
+}
+.modal-box {
+  background: #fff;
+  border-radius: 12px;
+  width: 100%;
+  max-width: 520px;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  box-shadow: 0 10px 40px rgba(0,0,0,0.25);
+  animation: modalIn 0.3s ease;
+}
+@keyframes modalIn {
+  from { transform: translateY(20px) scale(0.96); opacity: 0; }
+  to { transform: translateY(0) scale(1); opacity: 1; }
+}
+.modal-header {
+  padding: 16px 20px;
+  background: linear-gradient(135deg, var(--primary-dark), var(--primary));
+  color: #fff;
+  font-weight: 600;
+}
+.modal-body {
+  padding: 16px 20px;
+  overflow-y: auto;
+  flex: 1;
+}
+.modal-sub {
+  font-size: 13px;
+  color: var(--text-secondary);
+  margin-bottom: 8px;
+}
+.modal-footer {
+  padding: 12px 20px;
+  border-top: 1px solid var(--border);
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+  background: #FAFBFC;
+  flex-wrap: wrap;
+}
+@media (max-width: 480px) {
+  .modal-footer { justify-content: stretch; }
+  .modal-footer .btn { flex: 1; }
+}
+
+/* ========== 备份功能样式 ========== */
+.backup-bar {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  flex-wrap: wrap;
+  margin-top: 8px;
+}
+.backup-btn {
+  background: rgba(255,255,255,0.18);
+  color: #fff;
+  border: 1px solid rgba(255,255,255,0.3);
+  padding: 4px 10px;
+  border-radius: 14px;
+  font-size: 11px;
+  cursor: pointer;
+  font-family: inherit;
+  transition: all 0.2s;
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+}
+.backup-btn:hover { background: rgba(255,255,255,0.32); }
+.backup-info {
+  font-size: 10px;
+  opacity: 0.75;
+  margin-top: 4px;
+}
+.backup-info .ok { color: #A5D6A7; }
+.backup-info .warn { color: #FFCC80; }
+
+/* ========== 复盘历史数据库样式 ========== */
+.review-history-card { margin-top: 12px; }
+.history-list { max-height: 400px; overflow-y: auto; }
+.history-item {
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 10px 12px;
+  margin-bottom: 8px;
+  background: #FAFBFC;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.history-item:hover { border-color: var(--primary-light); background: #E3F2FD; }
+.history-item.active { border-color: var(--primary); background: #E3F2FD; }
+.history-item-head { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 4px; }
+.history-item-date { font-weight: bold; color: var(--primary-dark); font-size: 13px; }
+.history-item-meta { font-size: 11px; color: var(--text-secondary); }
+.history-item-score { font-size: 12px; font-weight: bold; padding: 2px 8px; border-radius: 10px; }
+.history-item-score.s { background: #C8E6C9; color: #2E7D32; }
+.history-item-score.a { background: #DCEDC8; color: #558B2F; }
+.history-item-score.b { background: #FFF9C4; color: #F57F17; }
+.history-item-score.c { background: #FFCCBC; color: #BF360C; }
+.history-del-btn {
+  background: none; border: none; color: var(--danger); cursor: pointer;
+  font-size: 16px; padding: 2px 6px; border-radius: 4px;
+}
+.history-del-btn:hover { background: #FFEBEE; }
+.history-summary { font-size: 12px; color: var(--text-secondary); margin-top: 4px; line-height: 1.5; }
+
+/* ========== 长期待办样式 ========== */
+.recurring-badge {
+  display: inline-block;
+  background: linear-gradient(135deg, #7C4DFF, #536DFE);
+  color: #fff;
+  font-size: 10px;
+  font-weight: 600;
+  padding: 1px 7px;
+  border-radius: 10px;
+  margin-left: 4px;
+  white-space: nowrap;
+}
+.recurring-section {
+  background: #F3E5F5;
+  border: 1px dashed #CE93D8;
+  border-radius: 6px;
+  padding: 10px 12px;
+  margin: 8px 0;
+}
+.recurring-section .section-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: #6A1B9A;
+  margin-bottom: 6px;
+}
+.recurring-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 4px;
+  padding: 6px 8px;
+  background: #fff;
+  border-radius: 4px;
+  margin-bottom: 4px;
+  font-size: 13px;
+}
+.recurring-item .ri-content { flex: 1; min-width: 0; }
+.recurring-item .ri-prio { font-size: 11px; font-weight: 600; padding: 1px 6px; border-radius: 8px; }
+.recurring-item .ri-prio.高 { background: #FFEBEE; color: #C62828; }
+.recurring-item .ri-prio.中 { background: #FFF3E0; color: #F57C00; }
+.recurring-item .ri-prio.低 { background: #E8F5E9; color: #2E7D32; }
+.recurring-toggle {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 6px;
+  font-size: 13px;
+}
+.recurring-toggle input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  cursor: pointer;
+  accent-color: #7C4DFF;
+}
+</style>
+</head>
+<body>
+
+<!-- 顶部栏 -->
+<div class="header">
+  <h1>🏥 OTC医药销售个人AI工作台</h1>
+  <p>华润三九OTC · 广东区域 · 单体/连锁药店</p>
+  <span class="status">● 系统已激活 · 待命中</span>
+  <div class="backup-bar">
+    <button class="backup-btn" onclick="manualBackup()">💾 立即备份</button>
+    <button class="backup-btn" onclick="downloadBackup()">⬇️ 导出文件</button>
+    <button class="backup-btn" onclick="document.getElementById('importFile').click()">⬆️ 导入恢复</button>
+    <input type="file" id="importFile" accept=".json" style="display:none;" onchange="importBackup(event)">
+    <span class="backup-info" id="backupInfo">加载中...</span>
+  </div>
+</div>
+
+<div class="container">
+
+  <!-- ========== 模块1：客户档案管理 ========== -->
+  <div id="module-1" class="module active">
+    <div class="card">
+      <div class="card-title">
+        <span>📋 客户档案录入</span>
+        <span class="tag">A/B/C自动分级</span>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>门店名称<span class="req">*</span></label>
+          <input type="text" id="c_name" placeholder="如：东莞南城XX药房">
+        </div>
+        <div class="form-group">
+          <label>门店类型<span class="req">*</span></label>
+          <select id="c_type">
+            <option value="">请选择</option>
+            <option value="单体药店">单体药店</option>
+            <option value="连锁门店">连锁门店</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>老板/采购姓名</label>
+          <input type="text" id="c_owner" placeholder="如：张三">
+        </div>
+        <div class="form-group">
+          <label>联系方式</label>
+          <input type="text" id="c_phone" placeholder="如：138XXXXXXXX">
+        </div>
+      </div>
+      <div class="form-group">
+        <label>门店地址</label>
+        <input type="text" id="c_addr" placeholder="详细地址，便于跑店导航">
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>门店规模（月销）</label>
+          <select id="c_scale">
+            <option value="">请选择</option>
+            <option value="5万以下">5万以下（小型）</option>
+            <option value="5-10万">5-10万（中小型）</option>
+            <option value="10-20万">10-20万（中型）</option>
+            <option value="20-50万">20-50万（大型）</option>
+            <option value="50万以上">50万以上（旗舰）</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>合作状态</label>
+          <select id="c_status">
+            <option value="待开发">待开发（C级）</option>
+            <option value="初次接触">初次接触</option>
+            <option value="谈判中">谈判中</option>
+            <option value="已合作">已合作</option>
+            <option value="稳定合作">稳定合作（A级）</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>主营品类</label>
+        <input type="text" id="c_category" placeholder="如：感冒类、肠胃类、外用类、保健品">
+      </div>
+      <div class="form-group">
+        <label>现有竞品</label>
+        <textarea id="c_competitor" placeholder="如：感冒类：XX品牌；肠胃类：XX品牌，政策如何"></textarea>
+      </div>
+      <div class="form-group">
+        <label>门店痛点</label>
+        <textarea id="c_pain" placeholder="如：客流下降、毛利低、店员不会推、压货风险、竞品挤压"></textarea>
+      </div>
+      <div class="form-group">
+        <label>历史订货记录</label>
+        <textarea id="c_order" placeholder="如：2025-08 感冒灵20盒 胃泰10盒 金额2800元"></textarea>
+      </div>
+      <div class="btn-row">
+        <button class="btn btn-primary" onclick="saveCustomer()">💾 保存客户档案</button>
+        <button class="btn btn-secondary" onclick="resetForm('customer-form')">🔄 清空表单</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">
+        <span>📂 我的客户列表</span>
+        <span class="tag" id="customer-count">共 0 家</span>
+      </div>
+      <div class="form-row" style="margin-bottom:10px;">
+        <div class="form-group">
+          <input type="text" id="c_search" placeholder="🔍 搜索门店名称/老板姓名" oninput="renderCustomerList()">
+        </div>
+        <div class="form-group">
+          <select id="c_filter_level" onchange="renderCustomerList()">
+            <option value="">全部等级</option>
+            <option value="A">A级（重点）</option>
+            <option value="B">B级（潜力）</option>
+            <option value="C">C级（待开发）</option>
+          </select>
+        </div>
+      </div>
+      <div class="customer-list" id="customer-list"></div>
+    </div>
+
+    <div class="card" id="c-detail-card" style="display:none;">
+      <div class="card-title">
+        <span>📊 客户详情 & 跟进计划</span>
+        <span class="tag" id="c-detail-level"></span>
+      </div>
+      <div class="output-tools">
+        <button class="btn btn-sm btn-secondary" onclick="copyOutput('c-detail-output')">📋 复制全部</button>
+      </div>
+      <div class="output-box" id="c-detail-output"></div>
+    </div>
+  </div>
+
+  <!-- ========== 模块2：拓客与陌拜工具包 ========== -->
+  <div id="module-2" class="module">
+    <div class="card">
+      <div class="card-title">
+        <span>🎯 陌拜工具生成器</span>
+        <span class="tag">选择客户后一键生成</span>
+      </div>
+      <div class="form-group">
+        <label>选择目标客户</label>
+        <select id="t_target" onchange="updateToolTarget()">
+          <option value="">-- 请从客户档案选择，或手动填写下方 --</option>
+        </select>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>门店名称</label>
+          <input type="text" id="t_name" placeholder="门店名称">
+        </div>
+        <div class="form-group">
+          <label>老板/采购称呼</label>
+          <input type="text" id="t_owner" placeholder="如：张总、李姐">
+        </div>
+      </div>
+      <div class="form-group">
+        <label>门店情况（简述）</label>
+        <textarea id="t_situation" placeholder="如：单体店月销8万，客流下滑，竞品XX品牌占主要位置"></textarea>
+      </div>
+      <div class="sub-tabs" id="tool-tabs">
+        <div class="sub-tab active" data-tool="opening">🎤 陌拜开场白</div>
+        <div class="sub-tab" data-tool="negotiate">💬 谈判切入点</div>
+        <div class="sub-tab" data-tool="wechat">💌 微信话术</div>
+        <div class="sub-tab" data-tool="objection">🛡️ 异议应答库</div>
+      </div>
+      <div class="btn-row">
+        <button class="btn btn-primary" onclick="generateTool()">⚡ 立即生成</button>
+        <button class="btn btn-secondary" onclick="generateAllTools()">📦 生成全套工具</button>
+      </div>
+    </div>
+
+    <div class="card" id="tool-result-card" style="display:none;">
+      <div class="card-title"><span id="tool-result-title">📝 生成结果</span></div>
+      <div class="output-tools">
+        <button class="btn btn-sm btn-secondary" onclick="copyOutput('tool-output')">📋 复制结果</button>
+      </div>
+      <div class="output-box" id="tool-output"></div>
+    </div>
+  </div>
+
+  <!-- ========== 模块3：订货&采购方案生成器 ========== -->
+  <div id="module-3" class="module">
+    <div class="card">
+      <div class="card-title">
+        <span>📦 门店采购方案生成器</span>
+        <span class="tag">选品+阶梯价+毛利测算</span>
+      </div>
+      <div class="form-group">
+        <label>选择客户（选填，自动带入参数）</label>
+        <select id="o_target" onchange="updateOrderTarget()">
+          <option value="">-- 手动填写参数 --</option>
+        </select>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>门店类型<span class="req">*</span></label>
+          <select id="o_type">
+            <option value="">请选择</option>
+            <option value="单体药店">单体药店</option>
+            <option value="连锁门店">连锁门店</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>门店规模（月销）<span class="req">*</span></label>
+          <select id="o_scale">
+            <option value="">请选择</option>
+            <option value="5万以下">5万以下</option>
+            <option value="5-10万">5-10万</option>
+            <option value="10-20万">10-20万</option>
+            <option value="20-50万">20-50万</option>
+            <option value="50万以上">50万以上</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>主营品类 / 重点推荐品类</label>
+        <select id="o_focus" multiple size="4">
+          <option value="感冒呼吸">感冒呼吸类（感冒灵/复方板蓝根）</option>
+          <option value="肠胃消化">肠胃消化类（三九胃泰/补脾益肠）</option>
+          <option value="外用止痛">外用止痛类（正天丸/天和骨通）</option>
+          <option value="皮肤用药">皮肤用药类（三九皮炎平/顺峰康王）</option>
+          <option value="儿科用药">儿科用药类（999小儿氨酚）</option>
+          <option value="补益养生">补益养生类（阿胶/参麦）</option>
+          <option value="维生素">维生素保健类</option>
+        </select>
+        <label style="margin-top:4px;font-weight:400;">（按住Ctrl/Cmd多选）</label>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>合作阶段</label>
+          <select id="o_stage">
+            <option value="首单">首单合作（保守推荐）</option>
+            <option value="补货">补货（正常推荐）</option>
+            <option value="压货">压货/活动囤货（加大推荐）</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>区域</label>
+          <select id="o_area">
+            <option value="广州">广州</option>
+            <option value="深圳">深圳</option>
+            <option value="东莞">东莞</option>
+            <option value="佛山">佛山</option>
+            <option value="中山">中山</option>
+            <option value="珠海">珠海</option>
+            <option value="惠州">惠州</option>
+            <option value="其他广东">其他广东地区</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>备注/特殊要求</label>
+        <input type="text" id="o_remark" placeholder="如：老板资金紧张，先小单尝试">
+      </div>
+      <div class="btn-row">
+        <button class="btn btn-primary btn-block" onclick="generateOrderPlan()">📊 生成完整采购建议书</button>
+      </div>
+    </div>
+
+    <div class="card" id="order-result-card" style="display:none;">
+      <div class="card-title"><span>📄 门店采购建议书</span></div>
+      <div class="output-tools">
+        <button class="btn btn-sm btn-secondary" onclick="copyOutput('order-output')">📋 复制全部</button>
+      </div>
+      <div class="output-box" id="order-output"></div>
+    </div>
+  </div>
+
+  <!-- ========== 模块4：门店动销策划模块 ========== -->
+  <div id="module-4" class="module">
+    <div class="card">
+      <div class="card-title">
+        <span>🚀 门店动销策划</span>
+        <span class="tag">陈列+促销+培训+评估</span>
+      </div>
+      <div class="form-group">
+        <label>选择客户</label>
+        <select id="m_target" onchange="updateMarketTarget()">
+          <option value="">-- 选择或手动填写 --</option>
+        </select>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>门店名称<span class="req">*</span></label>
+          <input type="text" id="m_name" placeholder="门店名称">
+        </div>
+        <div class="form-group">
+          <label>动销目标</label>
+          <select id="m_goal">
+            <option value="新品导入">新品导入</option>
+            <option value="清库存">清理库存</option>
+            <option value="提销量">常规提升销量</option>
+            <option value="抢份额">抢占竞品份额</option>
+            <option value="节日促销">节日促销活动</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>重点动销产品</label>
+        <select id="m_products" multiple size="5">
+          <option value="999感冒灵颗粒">999感冒灵颗粒</option>
+          <option value="999复方板蓝根颗粒">999复方板蓝根颗粒</option>
+          <option value="三九胃泰颗粒/胶囊">三九胃泰颗粒/胶囊</option>
+          <option value="补脾益肠丸">补脾益肠丸</option>
+          <option value="正天丸">正天丸</option>
+          <option value="三九皮炎平">三九皮炎平（糠酸莫米松）</option>
+          <option value="999小儿氨酚黄那敏">999小儿氨酚黄那敏</option>
+          <option value="天和骨通贴膏">天和骨通贴膏</option>
+          <option value="顺峰康王">顺峰康王</option>
+          <option value="阿胶系列">阿胶系列</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>门店类型</label>
+        <select id="m_type">
+          <option value="单体门店">单体门店</option>
+          <option value="连锁门店">连锁门店</option>
+        </select>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>门店人流量</label>
+          <select id="m_traffic">
+            <option value="低">低（<30人/天）</option>
+            <option value="中" selected>中（30-80人/天）</option>
+            <option value="高">高（>80人/天）</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>是否有O2O平台</label>
+          <select id="m_o2o">
+            <option value="有">有（美团/饿了么/京东到家）</option>
+            <option value="无">无</option>
+            <option value="待开通">待开通</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>预计活动周期</label>
+        <select id="m_period">
+          <option value="7天">7天（周活动）</option>
+          <option value="14天" selected>14天（双周）</option>
+          <option value="30天">30天（月度活动）</option>
+          <option value="节日档">节日档（如中秋/国庆）</option>
+        </select>
+      </div>
+      <div class="btn-row">
+        <button class="btn btn-primary btn-block" onclick="generateMarketPlan()">🎨 生成动销落地方案</button>
+      </div>
+    </div>
+
+    <div class="card" id="market-result-card" style="display:none;">
+      <div class="card-title"><span>📋 门店动销执行方案</span></div>
+      <div class="output-tools">
+        <button class="btn btn-sm btn-secondary" onclick="copyOutput('market-output')">📋 复制全部</button>
+      </div>
+      <div class="output-box" id="market-output"></div>
+    </div>
+  </div>
+
+  <!-- ========== 模块5：销售复盘模块 ========== -->
+  <div id="module-5" class="module">
+    <div class="card">
+      <div class="card-title">
+        <span>📈 销售复盘 · 数据录入</span>
+        <span class="tag">日/周/月复盘</span>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>复盘周期</label>
+          <select id="r_period">
+            <option value="每日">每日复盘</option>
+            <option value="每周" selected>每周复盘</option>
+            <option value="每月">月度复盘</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>复盘日期/周次</label>
+          <input type="text" id="r_date" value="2026年第34周">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>拜访门店数<span class="req">*</span></label>
+          <input type="number" id="r_visit" value="0" min="0">
+        </div>
+        <div class="form-group">
+          <label>新开发客户数</label>
+          <input type="number" id="r_new" value="0" min="0">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>成交订单数</label>
+          <input type="number" id="r_order" value="0" min="0">
+        </div>
+        <div class="form-group">
+          <label>成交金额（元）</label>
+          <input type="number" id="r_amount" value="0" min="0">
+        </div>
+      </div>
+      <div class="form-group">
+        <label>拜访详情（可选）</label>
+        <textarea id="r_detail" placeholder="每家门店情况简述，如：
+1. XX药房：老板出差，下周再谈
+2. XX连锁：首单感冒灵30盒，胃泰10盒
+3. XX单体店：纠结价格，申请政策支持"></textarea>
+      </div>
+      <div class="form-group">
+        <label>遇到的核心问题（每条一行）</label>
+        <textarea id="r_problem" placeholder="如：
+3家客户嫌三九供货价比竞品高
+2家门店库存压力大，不愿压货
+1家反映店员不会推产品
+连锁采购流程慢，审批卡住"></textarea>
+      </div>
+      <div class="form-group">
+        <label>待跟进客户名单（每条一行）</label>
+        <textarea id="r_follow" placeholder="如：
+东莞XX药房 - 谈首单细节
+深圳XX连锁 - 送样品试用
+广州XX单体 - 申请特殊政策"></textarea>
+      </div>
+      <div class="btn-row">
+        <button class="btn btn-primary btn-block" onclick="generateReview()">🔍 生成复盘报告 & 行动计划</button>
+      </div>
+    </div>
+
+    <div class="card" id="review-result-card" style="display:none;">
+      <div class="card-title"><span>📊 复盘报告 & 行动计划</span></div>
+      <div class="output-tools">
+        <button class="btn btn-sm btn-secondary" onclick="copyOutput('review-output')">📋 复制全部</button>
+        <button class="btn btn-sm btn-primary" onclick="saveReviewToHistory()">💾 存入复盘数据库</button>
+      </div>
+      <div class="output-box" id="review-output"></div>
+    </div>
+
+    <!-- 复盘历史数据库 -->
+    <div class="card review-history-card">
+      <div class="card-title">
+        <span>🗄️ 复盘数据库 · 历史查阅</span>
+        <span class="tag" id="review-history-count">0条记录</span>
+      </div>
+      <div class="btn-row" style="margin-bottom:8px;">
+        <button class="btn btn-sm btn-secondary" onclick="renderReviewHistory()">🔄 刷新列表</button>
+        <button class="btn btn-sm btn-secondary" onclick="clearAllReviewHistory()">🗑️ 清空全部</button>
+      </div>
+      <div class="history-list" id="review-history-list">
+        <div class="empty-state"><div class="icon">📭</div>暂无历史复盘记录，生成复盘后点击「💾存入复盘数据库」即可保存</div>
+      </div>
+    </div>
+
+    <!-- 复盘历史详情查看 -->
+    <div class="card" id="review-history-detail-card" style="display:none;">
+      <div class="card-title">
+        <span id="review-history-detail-title">📋 复盘详情</span>
+        <button class="btn btn-sm btn-secondary" onclick="document.getElementById('review-history-detail-card').style.display='none'" style="float:right;">✖ 关闭</button>
+      </div>
+      <div class="output-tools">
+        <button class="btn btn-sm btn-secondary" onclick="copyOutput('review-history-detail-output')">📋 复制全部</button>
+      </div>
+      <div class="output-box" id="review-history-detail-output"></div>
+    </div>
+  </div>
+
+  <!-- ========== 模块6：产品知识库 ========== -->
+  <div id="module-6" class="module">
+    <div class="card">
+      <div class="card-title">
+        <span>📚 华润三九产品知识库</span>
+        <span class="tag">快速调取话术</span>
+      </div>
+      <div class="form-group">
+        <input type="text" id="p_search" placeholder="🔍 输入产品名搜索，如：感冒灵、胃泰、皮炎平..." oninput="renderProductGrid()">
+      </div>
+      <div class="product-grid" id="product-grid"></div>
+    </div>
+
+    <div class="card" id="product-detail-card" style="display:none;">
+      <div class="card-title" id="product-detail-title"><span>产品详情</span></div>
+      <div class="output-tools">
+        <button class="btn btn-sm btn-secondary" onclick="copyOutput('product-output')">📋 复制资料</button>
+      </div>
+      <div class="output-box" id="product-output"></div>
+    </div>
+  </div>
+
+</div>
+
+<!-- ========== 模块8：每日待办事项 ========== -->
+  <div id="module-8" class="module">
+    <div class="card">
+      <div class="card-title">
+        <span>📝 新增待办事项</span>
+        <span class="tag">按优先级管理</span>
+      </div>
+      <div class="form-group">
+        <label>工作内容<span class="req">*</span></label>
+        <input type="text" id="td_content" placeholder="如：给东莞XX药房送样品 / 电话跟进深圳连锁采购">
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>优先级<span class="req">*</span></label>
+          <select id="td_priority">
+            <option value="高" style="color:#C62828;font-weight:600;">🔴 高（今日必须完成）</option>
+            <option value="中" selected style="color:#F57C00;">🟠 中（3天内完成）</option>
+            <option value="低" style="color:#2E7D32;">🟢 低（本周内完成）</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>计划完成日期</label>
+          <input type="date" id="td_date">
+        </div>
+      </div>
+      <div class="form-group">
+        <label>关联客户（可选）</label>
+        <select id="td_customer">
+          <option value="">-- 不关联具体客户 --</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <div class="recurring-toggle">
+          <input type="checkbox" id="td_recurring" onchange="toggleRecurringOptions()">
+          <label for="td_recurring" style="margin:0;cursor:pointer;font-weight:500;color:#6A1B9A;">🔁 设为长期执行任务（每天/每周自动生成，不用重复录入）</label>
+        </div>
+        <div id="recurring-freq-row" style="display:none;margin-top:8px;">
+          <label>重复频率</label>
+          <select id="td_recurring_freq">
+            <option value="daily">📅 每日重复</option>
+            <option value="weekly">📆 每周重复</option>
+            <option value="monthly">🗓️ 每月重复</option>
+            <option value="workday">💼 每个工作日（周一至周五）</option>
+          </select>
+        </div>
+      </div>
+      <div class="btn-row">
+        <button class="btn btn-primary" onclick="addTodo()">➕ 新增待办</button>
+        <button class="btn btn-secondary" onclick="document.getElementById('td_content').value='';document.getElementById('td_date').value='';document.getElementById('td_customer').value='';document.getElementById('td_priority').value='中';document.getElementById('td_recurring').checked=false;toggleRecurringOptions();">🔄 清空</button>
+      </div>
+    </div>
+
+    <!-- 长期执行任务管理区 -->
+    <div class="card" id="recurring-tasks-card">
+      <div class="card-title">
+        <span>🔁 长期执行任务</span>
+        <span class="tag" id="recurring-count">0条</span>
+      </div>
+      <div class="recurring-section">
+        <div class="section-title">已设为长期执行的任务（每天/每周自动延续，无需重复录入）</div>
+        <div id="recurring-list"></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">
+        <span>📅 今日待办清单</span>
+        <span class="tag" id="td_today_count">0 条</span>
+      </div>
+      <div class="sub-tabs" style="margin-bottom:10px;">
+        <div class="sub-tab active" data-tdview="pending" onclick="switchTodoView('pending')">⏳ 未完成 <b id="td_pending_count" style="margin-left:3px;">0</b></div>
+        <div class="sub-tab" data-tdview="done" onclick="switchTodoView('done')">✅ 已完成 <b id="td_done_count" style="margin-left:3px;">0</b></div>
+        <div class="sub-tab" data-tdview="backlog" onclick="switchTodoView('backlog')">⚠️ 遗留积压 <b id="td_backlog_count" style="margin-left:3px;">0</b></div>
+      </div>
+      <div id="todo_list"></div>
+      <div class="btn-row" style="margin-top:12px;">
+        <button class="btn btn-sm btn-secondary" onclick="clearDoneTodos()">🗑️ 清除全部已完成</button>
+        <button class="btn btn-sm btn-secondary" onclick="copyTodoList()">📋 复制待办清单</button>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- 移动端底部导航 / 桌面端侧边导航 -->
+<div class="tab-bar" id="tabBar">
+  <div class="tab-item active" data-module="1">
+    <span class="tab-icon">📋</span><span>客户档案</span>
+  </div>
+  <div class="tab-item" data-module="2">
+    <span class="tab-icon">🎯</span><span>陌拜工具</span>
+  </div>
+  <div class="tab-item" data-module="3">
+    <span class="tab-icon">📦</span><span>订货方案</span>
+  </div>
+  <div class="tab-item" data-module="4">
+    <span class="tab-icon">🚀</span><span>动销策划</span>
+  </div>
+  <div class="tab-item" data-module="5">
+    <span class="tab-icon">📈</span><span>销售复盘</span>
+  </div>
+  <div class="tab-item" data-module="6">
+    <span class="tab-icon">📚</span><span>产品知识库</span>
+  </div>
+  <div class="tab-item" data-module="8">
+    <span class="tab-icon">📝</span><span>每日待办</span>
+  </div>
+</div>
+
+<!-- 启动待办提醒 · 强制模态框 -->
+<div class="modal-mask" id="startup_modal" style="display:none;">
+  <div class="modal-box">
+    <div class="modal-header">
+      <span style="font-size:18px;">⚠️ 启动工作台 · 遗留待办强制提醒</span>
+    </div>
+    <div class="modal-body">
+      <div style="background:#FFEBEE;padding:10px;border-radius:6px;margin-bottom:12px;color:#C62828;font-weight:500;">
+        检测到您还有 <b id="sm_count">0</b> 条未完成待办事项，请优先处理完毕再进入其他业务模块。
+      </div>
+      <div class="modal-sub">以下为全部未完成待办（按优先级排序）：</div>
+      <div class="output-box" id="sm_output" style="max-height:300px;"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-primary" onclick="dismissStartupModal()">✅ 我已处理完毕，进入工作台</button>
+      <button class="btn btn-secondary" onclick="jumpToTodoFromModal()">📝 前往待办模块处理</button>
+    </div>
+  </div>
+</div>
+
+<!-- Toast 提示 -->
+<div class="toast" id="toast"></div>
+
+<script>
+/* ============ 全局数据 ============ */
+let customers = JSON.parse(localStorage.getItem('otc_customers') || '[]');
+let currentCustomerId = null;
+let currentTool = 'opening';
+let todos = JSON.parse(localStorage.getItem('otc_todos') || '[]');
+let recurringTodos = JSON.parse(localStorage.getItem('otc_recurring_todos') || '[]');
+let currentTodoView = 'pending';
+let startupModalLocked = false; // 启动模态框未关闭时禁止跳转模块
+
+/* ============ 待办工具函数 ============ */
+function saveTodos() { localStorage.setItem('otc_todos', JSON.stringify(todos)); }
+function saveRecurring() { localStorage.setItem('otc_recurring_todos', JSON.stringify(recurringTodos)); }
+
+/* ============ 长期待办：UI切换 ============ */
+function toggleRecurringOptions() {
+  const checked = document.getElementById('td_recurring').checked;
+  document.getElementById('recurring-freq-row').style.display = checked ? 'block' : 'none';
+  // 长期任务时隐藏计划日期（不需要选日期，自动按频率生成）
+  const dateInput = document.getElementById('td_date');
+  if (checked) {
+    dateInput.parentElement.style.opacity = '0.4';
+    dateInput.disabled = true;
+    dateInput.value = '';
+  } else {
+    dateInput.parentElement.style.opacity = '1';
+    dateInput.disabled = false;
+  }
+}
+
+/* ============ 长期待办：增删渲染 ============ */
+function addRecurringTodo(content, priority, freq, custId) {
+  const rt = {
+    id: 'rc_' + Date.now() + '_' + Math.random().toString(36).slice(2,6),
+    content, priority, freq,
+    customerId: custId,
+    createdAt: new Date().toISOString(),
+    lastGeneratedDate: '',  // 上次自动生成待办的日期
+    active: true
+  };
+  recurringTodos.unshift(rt);
+  saveRecurring();
+  renderRecurringList();
+  return rt;
+}
+
+function deleteRecurringTodo(id) {
+  if (!confirm('确认删除此长期执行任务？\n删除后不再自动生成，已生成的待办不受影响。')) return;
+  recurringTodos = recurringTodos.filter(r => r.id !== id);
+  saveRecurring();
+  renderRecurringList();
+  toast('🗑️ 已删除长期任务');
+}
+
+function toggleRecurringActive(id) {
+  const rt = recurringTodos.find(r => r.id === id);
+  if (!rt) return;
+  rt.active = !rt.active;
+  saveRecurring();
+  renderRecurringList();
+  toast(rt.active ? '✅ 已恢复自动生成' : '⏸️ 已暂停自动生成');
+}
+
+const FREQ_LABEL = { daily:'每日', weekly:'每周', monthly:'每月', workday:'工作日' };
+const FREQ_ICON = { daily:'📅', weekly:'📆', monthly:'🗓️', workday:'💼' };
+
+function renderRecurringList() {
+  const box = document.getElementById('recurring-list');
+  const countEl = document.getElementById('recurring-count');
+  if (countEl) countEl.textContent = recurringTodos.length + '条';
+  if (recurringTodos.length === 0) {
+    box.innerHTML = '<div style="padding:8px;color:#9E9E9E;font-size:13px;text-align:center;">暂无长期执行任务。勾选上方「🔁设为长期执行任务」即可添加。</div>';
+    return;
+  }
+  const prioIcon = { '高': '🔴', '中': '🟠', '低': '🟢' };
+  box.innerHTML = recurringTodos.map(rt => {
+    const cn = rt.customerId ? customerNameById(rt.customerId) : '';
+    return `
+    <div class="recurring-item" style="${rt.active?'':'opacity:0.5;'}">
+      <div class="ri-content">
+        <span>${prioIcon[rt.priority]||''} ${rt.content}</span>
+        <span class="recurring-badge">${FREQ_ICON[rt.freq]||''} ${FREQ_LABEL[rt.freq]||rt.freq}</span>
+        ${cn ? `<span class="cust-badge">🏪 ${cn}</span>` : ''}
+        ${!rt.active ? '<span style="color:#9E9E9E;font-size:11px;">已暂停</span>' : ''}
+      </div>
+      <div style="display:flex;gap:4px;align-items:center;">
+        <span class="ri-prio ${rt.priority}">${rt.priority}优先级</span>
+        <button class="todo-btn" onclick="toggleRecurringActive('${rt.id}')" title="${rt.active?'暂停':'恢复'}">${rt.active?'⏸️':'▶️'}</button>
+        <button class="todo-btn del" onclick="deleteRecurringTodo('${rt.id}')" title="删除">🗑️</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+/* ============ 长期待办：自动生成当日待办 ============ */
+function generateRecurringTodos() {
+  const today = todayStr();
+  const todayDate = new Date(today + 'T00:00:00');
+  const dayOfWeek = todayDate.getDay(); // 0=周日 1=周一 ... 6=周六
+  let generated = 0;
+
+  recurringTodos.filter(rt => rt.active).forEach(rt => {
+    // 判断今天是否应该生成
+    let shouldGenerate = false;
+    if (rt.freq === 'daily') {
+      shouldGenerate = true;
+    } else if (rt.freq === 'weekly') {
+      // 每周一生成
+      shouldGenerate = (dayOfWeek === 1);
+    } else if (rt.freq === 'monthly') {
+      // 每月1号生成
+      shouldGenerate = (todayDate.getDate() === 1);
+    } else if (rt.freq === 'workday') {
+      // 周一至周五
+      shouldGenerate = (dayOfWeek >= 1 && dayOfWeek <= 5);
+    }
+
+    if (!shouldGenerate) return;
+
+    // 检查今天是否已生成过（避免重复）
+    if (rt.lastGeneratedDate === today) return;
+
+    // 检查是否已有相同内容的未完成待办（避免重复）
+    const exists = todos.some(t =>
+      t.content === rt.content &&
+      t.recurringId === rt.id &&
+      !t.done
+    );
+    if (exists) {
+      rt.lastGeneratedDate = today;
+      return;
+    }
+
+    // 生成新待办
+    const todo = {
+      id: uid(),
+      content: rt.content,
+      priority: rt.priority,
+      planDate: today,
+      customerId: rt.customerId || '',
+      done: false,
+      createdAt: new Date().toISOString(),
+      doneAt: null,
+      recurringId: rt.id,
+      isRecurring: true
+    };
+    todos.push(todo);
+    rt.lastGeneratedDate = today;
+    generated++;
+  });
+
+  if (generated > 0) {
+    saveTodos();
+    saveRecurring();
+    console.log(`[长期待办] 今日自动生成 ${generated} 条待办`);
+  }
+  return generated;
+}
+
+/* ============ 自动备份模块 ============ */
+const BACKUP_KEY = 'otc_backup_history';
+const BACKUP_INTERVAL_MS = 5 * 60 * 1000; // 每5分钟自动备份一次
+let backupTimer = null;
+
+function getBackupHistory() {
+  try { return JSON.parse(localStorage.getItem(BACKUP_KEY) || '[]'); }
+  catch(e) { return []; }
+}
+function saveBackupHistory(arr) { localStorage.setItem(BACKUP_KEY, JSON.stringify(arr)); }
+
+// 收集当前全部业务数据
+function collectAllData() {
+  return {
+    customers: JSON.parse(localStorage.getItem('otc_customers') || '[]'),
+    todos: JSON.parse(localStorage.getItem('otc_todos') || '[]'),
+    recurringTodos: JSON.parse(localStorage.getItem('otc_recurring_todos') || '[]'),
+    reviewHistory: JSON.parse(localStorage.getItem('otc_review_history') || '[]'),
+    backupTime: new Date().toISOString()
+  };
+}
+
+// 写入本地备份快照（保留最近20份）
+function saveBackupSnapshot(reason) {
+  const snapshot = collectAllData();
+  snapshot.reason = reason || 'auto';
+  const history = getBackupHistory();
+  history.unshift(snapshot);
+  if (history.length > 20) history.length = 20;
+  saveBackupHistory(history);
+  return snapshot;
+}
+
+// 更新顶部备份状态显示
+function refreshBackupInfo() {
+  const info = document.getElementById('backupInfo');
+  if (!info) return;
+  const history = getBackupHistory();
+  const custCount = (JSON.parse(localStorage.getItem('otc_customers') || '[]')).length;
+  const todoCount = (JSON.parse(localStorage.getItem('otc_todos') || '[]')).length;
+  if (history.length === 0) {
+    info.innerHTML = `📂 客户 ${custCount} · 待办 ${todoCount} · <span class="warn">暂无备份</span>`;
+  } else {
+    const last = new Date(history[0].backupTime);
+    const timeStr = last.getMonth()+1+'/'+last.getDate()+' '+String(last.getHours()).padStart(2,'0')+':'+String(last.getMinutes()).padStart(2,'0');
+    info.innerHTML = `📂 客户 ${custCount} · 待办 ${todoCount} · 自动备份 ${history.length}份 · 最近 ${timeStr}`;
+  }
+}
+
+// 手动备份
+function manualBackup() {
+  const snap = saveBackupSnapshot('手动备份');
+  refreshBackupInfo();
+  toast('✅ 已完成手动备份（客户' + snap.customers.length + '家·待办' + snap.todos.length + '条）');
+}
+
+// 导出为JSON文件下载
+function downloadBackup() {
+  const data = collectAllData();
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  const d = new Date();
+  const fname = `OTC工作台备份_${d.getFullYear()}${String(d.getMonth()+1).padStart(2,'0')}${String(d.getDate()).padStart(2,'0')}_${String(d.getHours()).padStart(2,'0')}${String(d.getMinutes()).padStart(2,'0')}.json`;
+  a.href = url; a.download = fname;
+  document.body.appendChild(a); a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  toast('⬇️ 备份文件已下载：' + fname);
+}
+
+// 导入恢复
+function importBackup(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    try {
+      const data = JSON.parse(e.target.result);
+      if (!data.customers && !data.todos) {
+        toast('⚠️ 文件格式不正确，非有效备份');
+        return;
+      }
+      if (!confirm('确认导入恢复？将覆盖当前数据（客户' + (data.customers||[]).length + '家·待办' + (data.todos||[]).length + '条），建议先导出当前备份。')) return;
+      // 导入前先把当前数据存一份到历史
+      saveBackupSnapshot('导入前自动快照');
+      if (data.customers) { customers = data.customers; localStorage.setItem('otc_customers', JSON.stringify(customers)); }
+      if (data.todos) { todos = data.todos; localStorage.setItem('otc_todos', JSON.stringify(todos)); }
+      if (data.recurringTodos) { recurringTodos = data.recurringTodos; localStorage.setItem('otc_recurring_todos', JSON.stringify(recurringTodos)); }
+      renderCustomerList();
+      refreshCustomerSelects();
+      renderTodos();
+      renderRecurringList();
+      renderReviewHistory();
+      refreshBackupInfo();
+      toast('✅ 导入成功：客户' + (data.customers||[]).length + '家·待办' + (data.todos||[]).length + '条·长期任务' + (data.recurringTodos||[]).length + '条');
+    } catch(err) {
+      toast('⚠️ 文件解析失败：' + err.message);
+    }
+    event.target.value = '';
+  };
+  reader.readAsText(file);
+}
+
+// 启动自动定时备份
+function startAutoBackup() {
+  // 立即备份一次（首次启动）
+  const history = getBackupHistory();
+  if (history.length === 0) {
+    saveBackupSnapshot('首次启动');
+  } else {
+    // 检查最近一次距今是否超过间隔，超过则立即备份
+    const last = new Date(history[0].backupTime);
+    if (Date.now() - last.getTime() > BACKUP_INTERVAL_MS) {
+      saveBackupSnapshot('启动检测-已超期');
+    }
+  }
+  refreshBackupInfo();
+  // 定时器
+  if (backupTimer) clearInterval(backupTimer);
+  backupTimer = setInterval(() => {
+    saveBackupSnapshot('定时自动');
+    refreshBackupInfo();
+  }, BACKUP_INTERVAL_MS);
+}
+
+// 页面关闭/隐藏时自动备份
+window.addEventListener('beforeunload', () => {
+  saveBackupSnapshot('关闭页面');
+});
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'hidden') {
+    saveBackupSnapshot('切换后台');
+    refreshBackupInfo();
+  }
+});
+
+function todayStr() {
+  const d = new Date();
+  return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+}
+function formatDate(s) {
+  if (!s) return '';
+  return s.replace(/^(\d{4})-(\d{2})-(\d{2})$/, '$2月$3日');
+}
+function dateStatus(s) {
+  if (!s) return '';
+  const t = todayStr();
+  if (s < t) return 'overdue';
+  if (s === t) return 'today';
+  return '';
+}
+function priorityOrder(p) { return {'高': 0, '中': 1, '低': 2}[p] || 3; }
+function customerNameById(id) {
+  const c = customers.find(x => x.id === id);
+  return c ? c.name : '';
+}
+function refreshTodoCustomerSelect() {
+  const sel = document.getElementById('td_customer');
+  if (!sel) return;
+  sel.innerHTML = '<option value="">-- 不关联具体客户 --</option>' +
+    customers.map(c => `<option value="${c.id}">${c.name}（${c.level}级·${c.type}）</option>`).join('');
+}
+
+/* ============ 待办 CRUD ============ */
+function addTodo() {
+  const content = document.getElementById('td_content').value.trim();
+  if (!content) { toast('⚠️ 请输入工作内容'); return; }
+  const priority = document.getElementById('td_priority').value || '中';
+  const planDate = document.getElementById('td_date').value || todayStr();
+  const custId = document.getElementById('td_customer').value || '';
+  const isRecurring = document.getElementById('td_recurring').checked;
+  const recurringFreq = document.getElementById('td_recurring_freq').value;
+
+  // 长期执行任务：存入recurringTodos，并立即生成今日待办
+  if (isRecurring) {
+    const rt = addRecurringTodo(content, priority, recurringFreq, custId);
+    // 立即生成今日的待办
+    const todo = {
+      id: uid(),
+      content: rt.content,
+      priority: rt.priority,
+      planDate: todayStr(),
+      customerId: rt.customerId || '',
+      done: false,
+      createdAt: new Date().toISOString(),
+      doneAt: null,
+      recurringId: rt.id,
+      isRecurring: true
+    };
+    todos.push(todo);
+    saveTodos();
+    rt.lastGeneratedDate = todayStr();
+    saveRecurring();
+    renderTodos();
+    // 重置表单
+    document.getElementById('td_content').value = '';
+    document.getElementById('td_date').value = '';
+    document.getElementById('td_customer').value = '';
+    document.getElementById('td_priority').value = '中';
+    document.getElementById('td_recurring').checked = false;
+    toggleRecurringOptions();
+    toast('✅ 长期任务已添加，将按' + FREQ_LABEL[recurringFreq] + '频率自动生成');
+    return;
+  }
+
+  const todo = {
+    id: uid(),
+    content,
+    priority,
+    planDate,
+    customerId: custId,
+    done: false,
+    createdAt: new Date().toISOString(),
+    doneAt: null
+  };
+  todos.unshift(todo);
+  saveTodos();
+  renderTodos();
+  document.getElementById('td_content').value = '';
+  document.getElementById('td_date').value = '';
+  document.getElementById('td_customer').value = '';
+  document.getElementById('td_priority').value = '中';
+  toast('✅ 待办已添加');
+}
+function toggleTodo(id) {
+  const t = todos.find(x => x.id === id);
+  if (!t) return;
+  t.done = !t.done;
+  t.doneAt = t.done ? new Date().toISOString() : null;
+  saveTodos();
+  renderTodos();
+  toast(t.done ? '✅ 已标记完成' : '↩️ 已恢复为未完成');
+}
+function deleteTodo(id) {
+  if (!confirm('确认删除此待办？')) return;
+  todos = todos.filter(t => t.id !== id);
+  saveTodos();
+  renderTodos();
+  toast('🗑️ 已删除');
+}
+function clearDoneTodos() {
+  const n = todos.filter(t => t.done).length;
+  if (n === 0) { toast('暂无可清除的已完成任务'); return; }
+  if (!confirm(`确认清除 ${n} 条已完成任务？`)) return;
+  todos = todos.filter(t => !t.done);
+  saveTodos();
+  renderTodos();
+  toast(`🗑️ 已清除 ${n} 条已完成任务`);
+}
+
+function switchTodoView(v) {
+  currentTodoView = v;
+  document.querySelectorAll('[data-tdview]').forEach(el => {
+    el.classList.toggle('active', el.dataset.tdview === v);
+  });
+  renderTodos();
+}
+
+/* ============ 待办渲染 ============ */
+function renderTodos() {
+  const today = todayStr();
+  let list = [];
+  const pending = todos.filter(t => !t.done);
+  const done = todos.filter(t => t.done);
+  const backlog = todos.filter(t => !t.done && t.planDate && t.planDate < today);
+
+  document.getElementById('td_pending_count').textContent = pending.length;
+  document.getElementById('td_done_count').textContent = done.length;
+  document.getElementById('td_backlog_count').textContent = backlog.length;
+
+  if (currentTodoView === 'pending') list = pending;
+  else if (currentTodoView === 'done') list = done;
+  else list = backlog;
+
+  // 未完成/积压：优先级高→低；计划日期早→晚
+  if (currentTodoView !== 'done') {
+    list = [...list].sort((a,b) => {
+      const p = priorityOrder(a.priority) - priorityOrder(b.priority);
+      if (p !== 0) return p;
+      return (a.planDate||'9999').localeCompare(b.planDate||'9999');
+    });
+  } else {
+    list = [...list].sort((a,b) => (b.doneAt||'').localeCompare(a.doneAt||''));
+  }
+
+  document.getElementById('td_today_count').textContent = `${list.length} 条`;
+  const box = document.getElementById('todo_list');
+  if (list.length === 0) {
+    const map = {
+      pending: '🎉 今日无未完成待办，高效！',
+      done: '暂无已完成任务',
+      backlog: '✅ 暂无遗留积压任务，安排得很好！'
+    };
+    box.innerHTML = `<div class="empty-state"><div class="icon">${currentTodoView==='backlog'?'✅':currentTodoView==='pending'?'🎉':'📭'}</div>${map[currentTodoView]}</div>`;
+    return;
+  }
+
+  const prioIcon = { '高': '🔴', '中': '🟠', '低': '🟢' };
+  box.innerHTML = list.map(t => {
+    const ds = dateStatus(t.planDate);
+    const cn = customerNameById(t.customerId);
+    const dateLabel = ds === 'overdue' ? `⚠️ 逾期 ${formatDate(t.planDate)}` :
+                      ds === 'today' ? `📅 今天 (${formatDate(t.planDate)})` :
+                      `📅 ${formatDate(t.planDate)}`;
+    return `
+    <div class="todo-item ${t.done?'done':''}">
+      <input type="checkbox" class="todo-check" ${t.done?'checked':''} onchange="toggleTodo('${t.id}')" title="标记完成">
+      <div class="todo-content">
+        <div class="todo-content-text">${t.content}</div>
+        <div class="todo-meta">
+          <span class="prio-badge prio-${t.priority}">${prioIcon[t.priority]||''} ${t.priority}优先级</span>
+          ${t.isRecurring ? `<span class="recurring-badge">🔁 长期任务</span>` : ''}
+          ${t.planDate ? `<span class="date-badge ${ds}">${dateLabel}</span>` : ''}
+          ${cn ? `<span class="cust-badge">🏪 ${cn}</span>` : ''}
+          ${t.done && t.doneAt ? `<span>✅ 完成于 ${new Date(t.doneAt).toLocaleDateString('zh-CN')}</span>` : ''}
+        </div>
+      </div>
+      <div class="todo-actions">
+        <button class="todo-btn del" onclick="deleteTodo('${t.id}')" title="删除">🗑️</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+/* ============ 复制待办清单 ============ */
+function copyTodoList() {
+  const prioIcon = { '高': '🔴高', '中': '🟠中', '低': '🟢低' };
+  const today = todayStr();
+  const pending = todos.filter(t => !t.done).sort((a,b) => {
+    const p = priorityOrder(a.priority) - priorityOrder(b.priority);
+    if (p !== 0) return p;
+    return (a.planDate||'9999').localeCompare(b.planDate||'9999');
+  });
+  const backlog = pending.filter(t => t.planDate && t.planDate < today);
+  const todayTodo = pending.filter(t => !t.planDate || t.planDate <= today);
+  let text = `📝 【我的待办清单】 ${new Date().toLocaleDateString('zh-CN')}\n\n`;
+  if (backlog.length) {
+    text += `⚠️ 遗留积压未完成（${backlog.length}条）\n`;
+    backlog.forEach((t,i) => {
+      const cn = customerNameById(t.customerId);
+      text += `${i+1}. [${prioIcon[t.priority]}] ${t.content}${t.planDate?' · 逾期:'+formatDate(t.planDate):''}${cn?' · 客户:'+cn:''}\n`;
+    });
+    text += '\n';
+  }
+  text += `⏳ 今日待办（${todayTodo.length}条，按优先级）\n`;
+  todayTodo.forEach((t,i) => {
+    const cn = customerNameById(t.customerId);
+    const overdue = t.planDate && t.planDate < today ? '（逾期）' : '';
+    text += `${i+1}. [${prioIcon[t.priority]}] ${t.content}${overdue}${t.planDate?' · '+formatDate(t.planDate):''}${cn?' · '+cn:''}\n`;
+  });
+  const done = todos.filter(t => t.done);
+  text += `\n✅ 累计已完成：${done.length} 条`;
+  navigator.clipboard.writeText(text).then(() => toast('📋 已复制到剪贴板'))
+    .catch(() => {
+      const ta = document.createElement('textarea');
+      ta.value = text;
+      document.body.appendChild(ta); ta.select();
+      document.execCommand('copy'); document.body.removeChild(ta);
+      toast('📋 已复制到剪贴板');
+    });
+}
+
+/* ============ 启动强制待办提醒 ============ */
+function checkStartupTodoReminder() {
+  const pending = todos.filter(t => !t.done);
+  if (pending.length === 0) return; // 无未完成，不弹窗
+  startupModalLocked = true;
+  // 按优先级+逾期排序
+  const sorted = [...pending].sort((a,b) => {
+    const p = priorityOrder(a.priority) - priorityOrder(b.priority);
+    if (p !== 0) return p;
+    return (a.planDate||'9999').localeCompare(b.planDate||'9999');
+  });
+  const today = todayStr();
+  const prioIcon = { '高': '🔴', '中': '🟠', '低': '🟢' };
+  document.getElementById('sm_count').textContent = pending.length;
+  let html = `<table style="font-size:12px;"><tr><th>优先级</th><th>工作内容</th><th>计划日期</th><th>关联客户</th></tr>` +
+    sorted.map(t => {
+      const ds = dateStatus(t.planDate);
+      const dateTxt = t.planDate ? (ds === 'overdue' ? '<span style="color:#C62828;">⚠️逾期 '+formatDate(t.planDate)+'</span>' : ds === 'today' ? '<span style="color:#E65100;">今天</span>' : formatDate(t.planDate)) : '-';
+      return `<tr style="vertical-align:top;">
+        <td style="white-space:nowrap;">${prioIcon[t.priority]}${t.priority}</td>
+        <td>${t.content}</td>
+        <td style="white-space:nowrap;">${dateTxt}</td>
+        <td style="white-space:nowrap;">${customerNameById(t.customerId)||'-'}</td>
+      </tr>`;
+    }).join('') + '</table>';
+  html += `<div style="margin-top:10px;color:#C62828;font-weight:600;font-size:12px;">🔒 规则：您必须先处理上述遗留待办事项，未确认前无法使用其他业务模块。</div>`;
+  document.getElementById('sm_output').innerHTML = html;
+  document.getElementById('startup_modal').style.display = 'flex';
+}
+function dismissStartupModal() {
+  startupModalLocked = false;
+  document.getElementById('startup_modal').style.display = 'none';
+  toast('✅ 已确认待办，欢迎回来！');
+}
+function jumpToTodoFromModal() {
+  startupModalLocked = false;
+  document.getElementById('startup_modal').style.display = 'none';
+  document.querySelectorAll('.tab-item').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.module').forEach(m => m.classList.remove('active'));
+  const target = document.querySelector('.tab-item[data-module="8"]');
+  if (target) target.classList.add('active');
+  document.getElementById('module-8').classList.add('active');
+  currentTodoView = 'pending';
+  document.querySelectorAll('[data-tdview]').forEach(el => el.classList.toggle('active', el.dataset.tdview === 'pending'));
+  renderTodos();
+  toast('📝 已跳转待办模块，请处理完再开始业务');
+}
+
+/* ============ 华润三九产品库 ============ */
+const PRODUCTS = [
+  {
+    id: 'gml', name: '999感冒灵颗粒', cat: '感冒呼吸类', icon: '🤧',
+    spec: '10g×9袋 / 盒', price: '零售价约15.8元',
+    indications: '解热镇痛。用于感冒引起的头痛、发热、鼻塞、流涕、咽痛等症状。',
+    targets: '全年龄段人群（儿童遵医嘱减量）；换季感冒、办公室人群、学生群体。',
+    usp: [
+      '国民感冒药第一品牌，动销快、周转快、无需教育',
+      '中西药复方：三叉苦+野菊花+咖啡因+对乙酰氨基酚，起效快',
+      '含糖/无糖双规格，覆盖糖尿病患者人群',
+      '广东地区家喻户晓，自流转率极高'
+    ],
+    vs_competitor: 'vs 感康：品牌力更强，颗粒剂型依从性更好，广东市场基础更牢；vs 连花清瘟：价格更亲民，日常感冒更对症，无政策限制风险。',
+    sales_talk: [
+      '老板，999感冒灵是广东卖得最稳的感冒药，零滞销风险，毛利稳定，每月必走量的黄金SKU。',
+      '这款药顾客进店直接点名要的，你放心铺，我给你配套堆头+海报，动销慢了我帮你做店员培训。'
+    ],
+    clerk_talk: '店员推荐话术："您这是典型的感冒症状，试试999感冒灵，大牌子，老牌子，一盒见效，喝了不犯困不影响上班。"'
+  },
+  {
+    id: 'wt', name: '三九胃泰颗粒/胶囊', cat: '肠胃消化类', icon: '💊',
+    spec: '20g×6袋 / 24粒胶囊', price: '零售价约18-25元',
+    indications: '清热燥湿、行气活血、柔肝止痛。用于浅表性胃炎、糜烂性胃炎、萎缩性胃炎；胃痛、胃胀、反酸、恶心。',
+    targets: '30-55岁中青年白领（外卖族/应酬族）、胃病反复发作人群。',
+    usp: [
+      '纯中药配方，针对慢性胃炎标本兼治，非单纯抑酸',
+      '三桠苦+九里香+两面针+木香，四味君药协同作用',
+      '胶囊/颗粒双剂型，方便携带和服用',
+      '胃病老患者回购率极高，复购稳定'
+    ],
+    vs_competitor: 'vs 斯达舒：中药更安全，可长期服用无依赖；vs 奥美拉唑：不抑酸过度，适合胃炎养护；vs 胃仙U：本土品牌认可度高，价格更优。',
+    sales_talk: [
+      '老板，现在人十个有八个胃不好，三九胃泰是肠胃类TOP5品牌，老胃病顾客指定回购，毛利比同类产品高3-5个点。',
+      '广东人爱喝凉茶但怕伤胃，三九胃泰针对广东人体质，清热不伤胃，养胃不滞湿。'
+    ],
+    clerk_talk: '店员推荐话术："您这种胃胀/反酸/慢性胃炎，建议试试三九胃泰，纯中药的，治胃又养胃，按疗程服用效果更好，现在搭配补脾益肠丸调理更全面。"'
+  },
+  {
+    id: 'pyp', name: '补脾益肠丸', cat: '肠胃消化类', icon: '🌿',
+    spec: '90g / 130g / 瓶', price: '零售价约18-28元',
+    indications: '补中益气、健脾和胃、涩肠止泻。用于脾虚泄泻、慢性结肠炎、溃疡性结肠炎、肠易激综合征。',
+    targets: '长期腹泻、慢性肠炎、脾虚体弱人群；中老年为主。',
+    usp: [
+      '国药经典，胃肠分溶丸，外层健脾、内层治肠',
+      '针对慢性腹泻/五更泻/易激肠，3天起效，按疗程根治',
+      '中老年客群高频回购品，毛利空间大',
+      '可搭配益生菌/蛋白粉联合销售'
+    ],
+    vs_competitor: 'vs 整肠生/培菲康：治本不补菌，针对脾虚根源；vs 蒙脱石散：非单纯止泻，更适合慢性反复发作。',
+    sales_talk: [
+      '老板，补脾益肠丸是肠胃科常青树，针对慢性腹泻顾客回头率超高，客单价高，毛利好，基本没有售后问题。'
+    ],
+    clerk_talk: '店员推荐话术："您这种情况是脾虚引起的慢性腹泻，补脾益肠丸专门治根，分溶丸技术不伤胃，建议连续服用2-4周，肠胃彻底调理好。"'
+  },
+  {
+    id: 'ztw', name: '正天丸', cat: '外用止痛/头痛', icon: '🤕',
+    spec: '6g×10袋 / 盒', price: '零售价约22元',
+    indications: '疏风活血、通络止痛。用于偏头痛、紧张性头痛、神经性头痛、颈椎病型头痛、经前头痛。',
+    targets: '25-50岁职业人群（长期伏案/压力大）、女性经前头痛人群。',
+    usp: [
+      '头痛专科药，15味中药组方，针对各类原发性头痛',
+      '区别于布洛芬等止痛药：无依赖、不伤胃、治复发',
+      '与感冒灵、胃泰可形成联合推荐场景',
+      '偏头痛女性用户忠诚度极高'
+    ],
+    vs_competitor: 'vs 布洛芬/散利痛：中药治本不依赖，不刺激胃黏膜；vs 西比灵：无嗜睡副作用，不影响工作驾驶。',
+    sales_talk: [
+      '老板，现在上班族低头族十个有六个头痛，正天丸是中药头痛第一药，没有竞品可以替代，毛利空间大，复购率极高。'
+    ],
+    clerk_talk: '店员推荐话术："您这是典型的紧张性/偏头痛，常吃止痛药伤胃还依赖，试试正天丸，纯中药的，吃1-2盒基本就不犯了。"'
+  },
+  {
+    id: 'pyd', name: '999皮炎平（糠酸莫米松）', cat: '皮肤用药类', icon: '🧴',
+    spec: '10g / 20g / 支', price: '零售价约16-28元',
+    indications: '用于湿疹、神经性皮炎、异位性皮炎、接触性皮炎、脂溢性皮炎、皮肤瘙痒症。',
+    targets: '全年龄段（婴幼儿需遵医嘱）；湿疹、皮炎、皮肤瘙痒人群。',
+    usp: [
+      '中国皮肤外用药第一品牌，市场占有率超过30%',
+      '糠酸莫米松成分，中效激素，一天一次，依从性高',
+      '红/绿/金装三档，覆盖中/重度湿疹、婴幼儿湿疹',
+      '夏季、秋季高峰期疯狂走量'
+    ],
+    vs_competitor: 'vs 派瑞松：适应症更广，性价比更高；vs 地奈德：中效激素作用更强，湿疹效果更好；vs 苗药类：国药准字，安全性有保障。',
+    sales_talk: [
+      '老板，999皮炎平是皮肤科顶流品牌，夏秋季基本是日销品，零压货风险，广东气候湿热，湿疹皮炎多发，这个你放心上。'
+    ],
+    clerk_talk: '店员推荐话术："这个999皮炎平是大牌子，湿疹/皮炎/痒一抹就好，一天只涂一次，温和不刺激，坚持涂3-5天基本就消了。"'
+  },
+  {
+    id: 'blg', name: '999复方板蓝根颗粒', cat: '感冒呼吸类', icon: '🌼',
+    spec: '15g×20袋 / 盒', price: '零售价约18元',
+    indications: '清热解毒、凉血利咽。用于风热感冒、咽喉肿痛、口干咽燥；上呼吸道感染、流感预防。',
+    targets: '家庭常备药、换季流感期、上火咽痛人群。',
+    usp: [
+      '南板蓝根+大青叶配方，针对广东地区上火/湿热体质',
+      '家庭常备大包装（20袋），性价比高',
+      '流感/新冠等公共卫生事件期间爆发式增长',
+      '可与感冒灵组合陈列，联合推荐'
+    ],
+    vs_competitor: 'vs 白云山板蓝根：品牌力同级，剂型更好溶解；vs 连花清瘟：价格更低，日常预防更合适。',
+    sales_talk: [
+      '老板，复方板蓝根是家庭常备药之王，秋冬流感期一上架就走量，毛利稳定，广东家家户户都囤的。'
+    ],
+    clerk_talk: '店员推荐话术："最近换季流感多，备两盒复方板蓝根在家，咽痛上火、感冒初期冲一包，效果很好，大人小孩都能喝。"'
+  },
+  {
+    id: 'xnaf', name: '999小儿氨酚黄那敏颗粒', cat: '儿科用药类', icon: '👶',
+    spec: '6g×10袋 / 盒', price: '零售价约12元',
+    indications: '缓解儿童普通感冒及流行性感冒引起的发热、头痛、四肢酸痛、打喷嚏、流鼻涕、鼻塞、咽痛。',
+    targets: '1-12岁儿童；家长备药人群。',
+    usp: [
+      '儿童感冒药TOP3品牌，家长认知度高',
+      '水果口味，儿童服用接受度高',
+      '精准剂量，安全配比，OTC安全标识',
+      '搭配退热贴/益生菌联合销售场景多'
+    ],
+    vs_competitor: 'vs 护彤/小快克：同级品牌，价格更优；vs 小儿柴桂：西药起效更快，应急退烧首选。',
+    sales_talk: [
+      '老板，999小儿氨酚是儿科黄金SKU，宝妈进店必带的，毛利不错，动销快，搭配小儿退热贴连带率很高。'
+    ],
+    clerk_talk: '店员推荐话术："宝宝感冒发烧，用999小儿氨酚，水果味宝宝不抗拒，退烧快又安全，搭配退热贴物理降温双保险。"'
+  },
+  {
+    id: 'thgt', name: '天和骨通贴膏', cat: '外用止痛类', icon: '🩹',
+    spec: '10贴 / 盒', price: '零售价约22元',
+    indications: '祛风散寒、活血通络、消肿止痛。用于骨关节炎、颈椎病、腰椎间盘突出、肩周炎、腰肌劳损、风湿类风湿关节痛。',
+    targets: '中老年人、办公族颈椎腰椎病、运动损伤人群。',
+    usp: [
+      '中药外用贴剂TOP5，华南市场基础扎实',
+      '打孔透气型，夏天贴不闷，不发红过敏',
+      '1贴持续12小时，镇痛起效快',
+      '与正天丸/扶他林软膏形成骨关节品类矩阵'
+    ],
+    vs_competitor: 'vs 云南白药膏：骨关节炎针对性更强；vs 奇正消痛贴：价格更低，日常使用更划算。',
+    sales_talk: [
+      '老板，现在低头族腰颈问题多，加上中老年人风湿骨痛，骨通贴膏是高频消耗品，一买就是三五盒，毛利好，无售后。'
+    ],
+    clerk_talk: '店员推荐话术："您这颈椎/腰椎/膝盖痛，贴天和骨通贴膏，透气不过敏，晚上贴早上撕，坚持贴10天一个疗程，再配着正天丸内服，里外都调。"'
+  },
+  {
+    id: 'sfkw', name: '顺峰康王（酮康唑）', cat: '皮肤用药类', icon: '🧴',
+    spec: '10g / 支', price: '零售价约13元',
+    indications: '用于手癣、足癣、体癣、股癣、花斑癣、皮肤念珠菌病。',
+    targets: '脚气（足癣）高发人群、广东湿热地区体股癣人群。',
+    usp: [
+      '抗真菌皮肤药知名品牌，脚气一线用药',
+      '酮康唑+丙酸氯倍他索，杀菌+止痒双效',
+      '广东脚气高发，夏季刚需爆量',
+      '搭配足光散/喷剂联合销售客单价高'
+    ],
+    vs_competitor: 'vs 达克宁：价格更亲民，止痒速度更快；vs 特比萘芬：复方制剂抗炎止痒更强。',
+    sales_talk: [
+      '老板，顺峰康王是脚气药老牌子，广东人几乎人人用过，夏天一到就脱销，毛利空间大，搭配喷剂套装客单价翻倍。'
+    ],
+    clerk_talk: '店员推荐话术："您这个脚气/手癣用顺峰康王就对了，涂上去马上止痒，坚持涂2周不复发，建议再配一瓶足光散泡脚，里外一起治。"'
+  },
+  {
+    id: 'ej', name: '阿胶系列（阿胶/阿胶补血颗粒）', cat: '补益养生类', icon: '🌹',
+    spec: '阿胶块250g / 补血颗粒4g×30袋', price: '零售价约398-598元 / 88元',
+    indications: '补血滋阴、润燥止血。用于血虚萎黄、眩晕心悸、肌痿无力、心烦不眠、虚风内动、肺燥咳嗽；女性产后/经期补血。',
+    targets: '25-60岁女性为主；产后、经期、贫血、秋冬进补人群。',
+    usp: [
+      '补益类高客单价黄金品类，毛利空间高',
+      '东阿源产阿胶，品质背书强',
+      '阿胶糕/固元膏DIY，带动关联销售',
+      '中秋/年终/春节礼品场景爆发'
+    ],
+    vs_competitor: 'vs 东阿阿胶：性价比高20%以上；vs 福牌阿胶：终端支持政策更好。',
+    sales_talk: [
+      '老板，阿胶是下半年补益类销量王，毛利高客单价高，中秋国庆春节都是走礼的爆品，我给你配套专柜陈列和熬胶活动支持。'
+    ],
+    clerk_talk: '店员推荐话术："姐，秋冬进补首选阿胶，这款东阿产地的，补血养颜，手脚冰凉、脸色差的喝一冬天气色明显好，现在买还可以免费帮你熬成阿胶糕，方便天天吃。"'
+  },
+  {
+    id: 'btl', name: '999板蓝根颗粒', cat: '感冒呼吸类', icon: '💙',
+    spec: '10g×20袋', price: '零售价约16元',
+    indications: '清热解毒、凉血利咽。用于肺胃热盛所致的咽喉肿痛、口咽干燥；急性扁桃体炎。',
+    targets: '家庭常备药人群、上火咽痛、流感预防。',
+    usp: [
+      '国民级中成药，认知度接近100%',
+      '20袋家庭装，性价比高，客单价稳定',
+      '与复方板蓝根形成价格带组合',
+      '流感季节、高考季、开学季爆量'
+    ],
+    vs_competitor: 'vs 香雪/白云山板蓝根：品牌渠道双优；vs 蓝芩口服液：价格更低，日常预防更合适。',
+    sales_talk: [
+      '老板，板蓝根是药店的硬通货，不压货不动脑，直接摆上去就卖，毛利稳定，开学季和流感期尤其好走。'
+    ],
+    clerk_talk: '店员推荐话术："最近上火喉咙痛，买包板蓝根回去天天冲，无副作用，全家都能喝，预防感冒也很好。"'
+  },
+  {
+    id: 'sm', name: '参麦颗粒', cat: '补益养生类', icon: '💛',
+    spec: '25g×24袋 / 盒', price: '零售价约58元',
+    indications: '养阴生津。用于面黄肌瘦、津少口渴、腰膝酸软、食欲不振、头晕眼花、心悸气短、神经衰弱。',
+    targets: '中老年人日常滋补、体虚乏力、术后恢复人群。',
+    usp: [
+      '红参+麦冬+南沙参经典组方，温和不上火',
+      '广东人"虚不受补"体质首选，区别于阿胶鹿茸',
+      '颗粒剂冲服方便，接受度高',
+      '可与维生素/蛋白粉联合推荐'
+    ],
+    vs_competitor: 'vs 西洋参含片：价格更亲民，日常滋补更合适；vs 阿胶：不滋腻，湿热体质也能用。',
+    sales_talk: [
+      '老板，参麦颗粒是广东中老年最爱的滋补品之一，温和不燥热，天天喝都可以，毛利空间大，回头客多。'
+    ],
+    clerk_talk: '店员推荐话术："阿姨/叔，您这个年纪补参麦最合适，红参补气麦冬养阴，不像人参那么燥热，广东人喝最适合，一天两袋，吃饭香睡觉好。"'
+  }
+];
+
+/* ============ 工具函数 ============ */
+function toast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 1800);
+}
+function uid() { return Date.now().toString(36) + Math.random().toString(36).slice(2,7); }
+function saveDB() { localStorage.setItem('otc_customers', JSON.stringify(customers)); }
+
+function copyOutput(id) {
+  const el = document.getElementById(id);
+  const text = el.innerText;
+  navigator.clipboard.writeText(text).then(() => {
+    toast('✅ 已复制到剪贴板');
+  }).catch(() => {
+    // fallback
+    const ta = document.createElement('textarea');
+    ta.value = text;
+    document.body.appendChild(ta);
+    ta.select();
+    document.execCommand('copy');
+    document.body.removeChild(ta);
+    toast('✅ 已复制到剪贴板');
+  });
+}
+
+function resetForm(prefix) {
+  if (prefix === 'customer-form') {
+    ['c_name','c_type','c_owner','c_phone','c_addr','c_scale','c_status','c_category','c_competitor','c_pain','c_order'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.value = el.tagName === 'SELECT' ? (el.querySelector('option[selected]')?.value || '') : '';
+    });
+    currentCustomerId = null;
+    document.getElementById('c-detail-card').style.display = 'none';
+    toast('🔄 表单已清空');
+  }
+}
+
+/* ============ Tab 切换 ============ */
+document.querySelectorAll('.tab-item').forEach(tab => {
+  tab.addEventListener('click', () => {
+    if (startupModalLocked) {
+      toast('🔒 请先在弹窗中确认待办事项，再使用其他功能');
+      return;
+    }
+    document.querySelectorAll('.tab-item').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.module').forEach(m => m.classList.remove('active'));
+    tab.classList.add('active');
+    document.getElementById('module-' + tab.dataset.module).classList.add('active');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  });
+});
+
+/* ============ 客户分级算法 ============ */
+function calcCustomerLevel(c) {
+  let score = 0;
+  // 规模分
+  const scaleMap = { '5万以下': 5, '5-10万': 10, '10-20万': 18, '20-50万': 28, '50万以上': 40 };
+  score += scaleMap[c.scale] || 0;
+  // 合作状态分
+  const statusMap = { '待开发': 0, '初次接触': 5, '谈判中': 10, '已合作': 25, '稳定合作': 40 };
+  score += statusMap[c.status] || 0;
+  // 类型分
+  score += c.type === '连锁门店' ? 10 : 5;
+  // 订货加分
+  if (c.order && c.order.trim().length > 10) score += 10;
+  return score >= 50 ? 'A' : (score >= 25 ? 'B' : 'C');
+}
+
+function levelDesc(l) {
+  return { A: 'A级 · 高价值重点客户', B: 'B级 · 潜力客户', C: 'C级 · 待开发新客户' }[l];
+}
+
+/* ============ 保存客户档案 ============ */
+function saveCustomer() {
+  const name = document.getElementById('c_name').value.trim();
+  const type = document.getElementById('c_type').value;
+  if (!name || !type) {
+    toast('⚠️ 请填写门店名称和门店类型');
+    return;
+  }
+  const customer = {
+    id: currentCustomerId || uid(),
+    name, type,
+    owner: document.getElementById('c_owner').value.trim(),
+    phone: document.getElementById('c_phone').value.trim(),
+    addr: document.getElementById('c_addr').value.trim(),
+    scale: document.getElementById('c_scale').value,
+    status: document.getElementById('c_status').value,
+    category: document.getElementById('c_category').value.trim(),
+    competitor: document.getElementById('c_competitor').value.trim(),
+    pain: document.getElementById('c_pain').value.trim(),
+    order: document.getElementById('c_order').value.trim(),
+    createdAt: currentCustomerId ? customers.find(c => c.id === currentCustomerId)?.createdAt : new Date().toISOString(),
+    updatedAt: new Date().toISOString()
+  };
+  customer.level = calcCustomerLevel(customer);
+
+  if (currentCustomerId) {
+    const idx = customers.findIndex(c => c.id === currentCustomerId);
+    if (idx >= 0) customers[idx] = customer;
+    toast('✅ 客户档案已更新');
+  } else {
+    customers.push(customer);
+    toast('✅ 客户档案已保存');
+  }
+  saveDB();
+  currentCustomerId = null;
+  resetForm('customer-form');
+  renderCustomerList();
+  refreshCustomerSelects();
+  showCustomerDetail(customer);
+}
+
+/* ============ 渲染客户列表 ============ */
+function renderCustomerList() {
+  const kw = document.getElementById('c_search').value.trim().toLowerCase();
+  const lv = document.getElementById('c_filter_level').value;
+  const list = customers.filter(c => {
+    if (kw && !(c.name.toLowerCase().includes(kw) || (c.owner||'').toLowerCase().includes(kw))) return false;
+    if (lv && c.level !== lv) return false;
+    return true;
+  }).sort((a,b) => (b.level.charCodeAt(0) - a.level.charCodeAt(0)) || (new Date(b.updatedAt) - new Date(a.updatedAt)));
+  const box = document.getElementById('customer-list');
+  document.getElementById('customer-count').textContent = `共 ${customers.length} 家`;
+  if (list.length === 0) {
+    box.innerHTML = `<div class="empty-state"><div class="icon">📭</div>暂无客户档案，请在上方录入</div>`;
+    return;
+  }
+  box.innerHTML = list.map(c => `
+    <div class="customer-item">
+      <div class="name-row">
+        <span class="name">${c.name} <span class="level-tag level-${c.level}">${c.level}级</span></span>
+        <span style="font-size:11px;color:#999;">${c.type}</span>
+      </div>
+      <div class="meta">
+        ${c.owner ? '👤 '+c.owner+(c.phone?' · 📱'+c.phone:'')+'<br>' : ''}
+        ${c.scale ? '💰 月销 '+c.scale+' · ' : ''}${c.status || '待开发'}
+        ${c.addr ? '<br>📍 '+c.addr : ''}
+      </div>
+      <div class="actions">
+        <button class="btn btn-sm btn-primary" onclick='editCustomer("${c.id}")'>✏️ 编辑</button>
+        <button class="btn btn-sm btn-secondary" onclick='showCustomerDetailById("${c.id}")'>📊 详情</button>
+        <button class="btn btn-sm btn-secondary" onclick='switchWithCustomer(2, "${c.id}")'>🎯 陌拜</button>
+        <button class="btn btn-sm btn-secondary" onclick='switchWithCustomer(3, "${c.id}")'>📦 订货</button>
+        <button class="btn btn-sm btn-secondary" onclick='switchWithCustomer(4, "${c.id}")'>🚀 动销</button>
+        <button class="btn btn-sm" style="background:#FFEBEE;color:#D32F2F;" onclick='deleteCustomer("${c.id}")'>🗑️</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+function editCustomer(id) {
+  const c = customers.find(x => x.id === id);
+  if (!c) return;
+  currentCustomerId = id;
+  document.getElementById('c_name').value = c.name || '';
+  document.getElementById('c_type').value = c.type || '';
+  document.getElementById('c_owner').value = c.owner || '';
+  document.getElementById('c_phone').value = c.phone || '';
+  document.getElementById('c_addr').value = c.addr || '';
+  document.getElementById('c_scale').value = c.scale || '';
+  document.getElementById('c_status').value = c.status || '';
+  document.getElementById('c_category').value = c.category || '';
+  document.getElementById('c_competitor').value = c.competitor || '';
+  document.getElementById('c_pain').value = c.pain || '';
+  document.getElementById('c_order').value = c.order || '';
+  document.getElementById('c-detail-card').style.display = 'none';
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+  toast('✏️ 正在编辑客户档案，修改后请重新保存');
+}
+
+function deleteCustomer(id) {
+  if (!confirm('确认删除该客户档案？此操作不可恢复。')) return;
+  customers = customers.filter(c => c.id !== id);
+  saveDB();
+  renderCustomerList();
+  refreshCustomerSelects();
+  toast('🗑️ 已删除');
+}
+
+function switchWithCustomer(mod, id) {
+  document.querySelectorAll('.tab-item').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.module').forEach(m => m.classList.remove('active'));
+  document.querySelector(`.tab-item[data-module="${mod}"]`).classList.add('active');
+  document.getElementById('module-' + mod).classList.add('active');
+  const c = customers.find(x => x.id === id);
+  if (!c) return;
+  if (mod === 2) {
+    document.getElementById('t_target').value = id;
+    document.getElementById('t_name').value = c.name || '';
+    document.getElementById('t_owner').value = c.owner || '';
+    const sit = [c.type, c.scale, c.status, c.pain, c.competitor].filter(Boolean).join('，');
+    document.getElementById('t_situation').value = sit;
+  } else if (mod === 3) {
+    document.getElementById('o_target').value = id;
+    document.getElementById('o_type').value = c.type || '';
+    document.getElementById('o_scale').value = c.scale || '';
+  } else if (mod === 4) {
+    document.getElementById('m_target').value = id;
+    document.getElementById('m_name').value = c.name || '';
+  }
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+/* ============ 客户详情 & 跟进计划 ============ */
+function showCustomerDetailById(id) {
+  const c = customers.find(x => x.id === id);
+  if (c) showCustomerDetail(c);
+}
+
+function showCustomerDetail(c) {
+  const card = document.getElementById('c-detail-card');
+  const output = document.getElementById('c-detail-output');
+  document.getElementById('c-detail-level').textContent = levelDesc(c.level);
+
+  // 计算下次跟进时间
+  const now = new Date();
+  let nextDays = 7;
+  if (c.level === 'A') nextDays = 3;
+  else if (c.level === 'B') nextDays = 7;
+  else nextDays = 14;
+  if (c.status === '谈判中') nextDays = 3;
+  if (c.status === '初次接触') nextDays = 5;
+  const next = new Date(now.getTime() + nextDays * 86400000);
+  const nextStr = `${next.getMonth()+1}月${next.getDate()}日`;
+
+  // 待办事项
+  const todos = [];
+  if (c.status === '待开发' || c.status === '初次接触') {
+    todos.push('陌拜准备：打印名片+样品+首单政策表');
+    todos.push(`准备针对[${c.pain || '毛利增长'}]痛点的谈判话术`);
+  }
+  if (c.status === '谈判中') {
+    todos.push('整理竞品对比表，强调三九品牌+动销支持');
+    todos.push('申请对应政策支持（阶梯价/物料/培训）');
+    todos.push('与老板确认首单SKU组合与金额');
+  }
+  if (c.status === '已合作' || c.status === '稳定合作') {
+    todos.push('检查库存，提醒补货时机');
+    todos.push('确认动销方案执行情况（陈列/堆头/促销）');
+    todos.push('收集销售数据与竞品情报');
+    todos.push('下轮订货政策预热与压货引导');
+  }
+  if (c.level === 'A') todos.push('🎁 准备客户维护动作：节日问候/专属政策/礼品');
+  if (c.level === 'B') todos.push('💪 推动B级升A级：扩大SKU数 / 提升单次订量');
+
+  // 沟通要点
+  const points = [];
+  points.push(`确认门店[${c.pain || '核心痛点'}]的最新情况`);
+  if (c.competitor) points.push(`了解现有竞品[${c.competitor.slice(0,15)}]的最新政策`);
+  points.push(c.status.includes('合作') ? '了解近段动销情况与补货需求' : '传递三九政策优势+首单支持力度');
+  points.push('收集门店对我方服务/产品的反馈意见');
+
+  let html = `
+<h3>一、客户基础档案</h3>
+<table>
+<tr><th style="width:25%">项目</th><th>详情</th></tr>
+<tr><td>门店名称</td><td>${c.name}</td></tr>
+<tr><td>门店类型 / 等级</td><td>${c.type} / <span class="level-tag level-${c.level}">${c.level}级</span> ${levelDesc(c.level).slice(5)}</td></tr>
+<tr><td>老板/采购</td><td>${c.owner || '（未录入）'} ${c.phone ? '📱 '+c.phone : ''}</td></tr>
+<tr><td>门店地址</td><td>${c.addr || '（未录入）'}</td></tr>
+<tr><td>门店规模</td><td>${c.scale || '（未录入）'}</td></tr>
+<tr><td>主营品类</td><td>${c.category || '（未录入）'}</td></tr>
+<tr><td>合作状态</td><td>${c.status || '待开发'}</td></tr>
+<tr><td>现有竞品</td><td>${c.competitor || '（未录入）'}</td></tr>
+<tr><td>门店痛点</td><td>${c.pain || '（未录入）'}</td></tr>
+<tr><td>历史订货记录</td><td>${c.order || '（无）'}</td></tr>
+</table>
+
+<h3>二、客户跟进计划表</h3>
+<table>
+<tr><th style="width:25%">项目</th><th>内容</th></tr>
+<tr><td>下次拜访时间</td><td>📅 ${nextStr}（${nextDays}天内）</td></tr>
+<tr><td>客户等级策略</td><td>${c.level==='A'?'【A级】每周1-2次深度维护，优先资源倾斜，保增长保份额':c.level==='B'?'【B级】每1-2周跟进，挖掘潜力，推动升A级':'【C级】每2-3周跟进，建立关系，寻找突破口'}</td></tr>
+</table>
+
+<h3>三、本次拜访沟通要点</h3>
+<ol>
+${points.map(p => `<li>${p}</li>`).join('')}
+</ol>
+
+<h3>四、待办事项清单</h3>
+<ol>
+${todos.map((t,i) => `<li>${t}</li>`).join('')}
+<li>拜访完成后：在本系统更新合作状态/痛点/订货记录</li>
+</ol>
+  `;
+  output.innerHTML = html;
+  card.style.display = 'block';
+  card.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+/* ============ 客户下拉选择刷新 ============ */
+function refreshCustomerSelects() {
+  const opts = customers.map(c => `<option value="${c.id}">${c.name}（${c.level}级·${c.type}）</option>`).join('');
+  document.getElementById('t_target').innerHTML = `<option value="">-- 请从客户档案选择，或手动填写下方 --</option>` + opts;
+  document.getElementById('o_target').innerHTML = `<option value="">-- 手动填写参数 --</option>` + opts;
+  document.getElementById('m_target').innerHTML = `<option value="">-- 选择或手动填写 --</option>` + opts;
+  // 同步刷新待办模块的客户选择
+  refreshTodoCustomerSelect();
+}
+function updateToolTarget() {
+  const id = document.getElementById('t_target').value;
+  if (!id) return;
+  const c = customers.find(x => x.id === id);
+  if (!c) return;
+  document.getElementById('t_name').value = c.name || '';
+  document.getElementById('t_owner').value = c.owner || '';
+  const sit = [c.type, c.scale, c.status, c.pain, c.competitor].filter(Boolean).join('，');
+  document.getElementById('t_situation').value = sit;
+}
+function updateOrderTarget() {
+  const id = document.getElementById('o_target').value;
+  if (!id) return;
+  const c = customers.find(x => x.id === id);
+  if (!c) return;
+  document.getElementById('o_type').value = c.type || '';
+  document.getElementById('o_scale').value = c.scale || '';
+}
+function updateMarketTarget() {
+  const id = document.getElementById('m_target').value;
+  if (!id) return;
+  const c = customers.find(x => x.id === id);
+  if (!c) return;
+  document.getElementById('m_name').value = c.name || '';
+  const typeSel = document.getElementById('m_type');
+  if (typeSel) {
+    const opt = Array.from(typeSel.options).find(o => o.value === c.type);
+    typeSel.value = opt ? opt.value : '单体门店';
+  }
+}
+
+/* ============ 模块2：陌拜工具 ============ */
+document.querySelectorAll('#tool-tabs .sub-tab').forEach(t => {
+  t.addEventListener('click', () => {
+    document.querySelectorAll('#tool-tabs .sub-tab').forEach(x => x.classList.remove('active'));
+    t.classList.add('active');
+    currentTool = t.dataset.tool;
+  });
+});
+
+function generateTool() {
+  const name = document.getElementById('t_name').value.trim() || 'XX药店';
+  const owner = document.getElementById('t_owner').value.trim() || '老板';
+  const situation = document.getElementById('t_situation').value.trim() || '暂无特殊情况';
+  const titles = {
+    opening: '🎤 陌拜开场白',
+    negotiate: '💬 谈判切入点 & 痛点提问清单',
+    wechat: '💌 微信话术全集',
+    objection: '🛡️ 常见异议应答话术库'
+  };
+  let content = '';
+  if (currentTool === 'opening') content = genOpening(name, owner, situation);
+  else if (currentTool === 'negotiate') content = genNegotiate(name, owner, situation);
+  else if (currentTool === 'wechat') content = genWechat(name, owner);
+  else if (currentTool === 'objection') content = genObjection();
+
+  document.getElementById('tool-result-title').textContent = titles[currentTool];
+  document.getElementById('tool-output').innerHTML = content;
+  document.getElementById('tool-result-card').style.display = 'block';
+}
+
+function generateAllTools() {
+  const name = document.getElementById('t_name').value.trim() || 'XX药店';
+  const owner = document.getElementById('t_owner').value.trim() || '老板';
+  const situation = document.getElementById('t_situation').value.trim() || '暂无特殊情况';
+  let content = `
+<h3>🎤 一、上门陌拜开场白</h3>${genOpening(name, owner, situation)}
+<h3>💬 二、谈判切入点 & 痛点提问清单</h3>${genNegotiate(name, owner, situation)}
+<h3>💌 三、微信话术全集</h3>${genWechat(name, owner)}
+<h3>🛡️ 四、5大常见异议应答话术库</h3>${genObjection()}
+  `;
+  document.getElementById('tool-result-title').textContent = '📦 陌拜全套工具包';
+  document.getElementById('tool-output').innerHTML = content;
+  document.getElementById('tool-result-card').style.display = 'block';
+}
+
+function genOpening(name, owner, sit) {
+  return `
+<b>场景1：老板在店，直接陌拜（推荐）</b>
+<blockquote>您好${owner}！我是华润三九广东区域的业务员小X，今天过来是专程给您送一份【三九动销支持方案】的。
+咱们三九是全国OTC第一梯队，在广东的品牌认知度您肯定也了解——999感冒灵、胃泰这些都是顾客点名要的硬通货。
+我今天不占用您太多时间，3分钟给您过一下我们给新店的首单扶持政策，您看方便吗？</blockquote>
+
+<b>场景2：店员在，老板不在</b>
+<blockquote>您好！我是华润三九的业务员，想找一下${owner}对接一下合作的事情，请问他今天在吗？
+（不在）哦没关系，这是我的名片和三九的产品资料，麻烦您帮忙转交一下。
+请问${owner}一般什么时候在店？我明天/后天再过来拜访。
+另外麻烦问一下，咱们店现在感冒类、肠胃类的销量TOP1是哪些品牌呀？我帮您做个对比参考。</blockquote>
+
+<b>场景3：连锁门店（找店长/采购）</b>
+<blockquote>您好店长！我是华润三九OTC的业务代表，之前和总部采购对接过${name}门店的动销项目，今天过来是落地门店的陈列支持和店员培训。
+请问咱们现在三九系列的库存情况怎么样？我帮您盘一下，顺便把本月的动销物料（堆头/海报/爆炸贴）给您送过来。</blockquote>
+
+<b>破冰加分项（说完开场白立即用上）</b>
+<ul>
+  <li>送上样品："这是两盒三九胃泰和感冒灵的样品，您先试用一下，效果好咱们再谈合作。"</li>
+  <li>递名片+政策单页："这是我们针对${name}这个体量门店的首单政策，毛利、支持、配送都写清楚了。"</li>
+  <li>观察门店："我刚才看了一下您的货架，感冒类的XX品牌占了C位，其实三九的自流转率比它高20%以上，咱们一起算个账？"</li>
+</ul>
+
+<em>💡 记录：门店情况 - ${sit}</em>
+`;
+}
+
+function genNegotiate(name, owner, sit) {
+  return `
+<b>一、四大谈判切入点（按优先级）</b>
+<table>
+<tr><th>切入点</th><th>怎么谈</th><th>目标</th></tr>
+<tr><td>① 品牌自流转</td><td>"${owner}，999感冒灵/胃泰在广东的品牌认知度超过95%，顾客进店直接点名要，不需要教育成本，也不会压货。"</td><td>打消动销慢的顾虑</td></tr>
+<tr><td>② 毛利与政策</td><td>"三九给终端的毛利空间是XX-XX%，加上阶梯返利、首单赠送、动销支持，综合利润不比竞品低。"</td><td>打破"三九价格贵利润薄"偏见</td></tr>
+<tr><td>③ 动销全包服务</td><td>"我们配套免费的：陈列堆头设计、海报爆炸贴、店员培训、促销活动、O2O线上运营。您进货就行，卖货我们帮您做。"</td><td>突出我司服务差异化</td></tr>
+<tr><td>④ 痛点针对性方案</td><td>针对${sit||'门店痛点'}，给对应的解决方案（客流→促销活动，毛利→阶梯价，店员不会卖→培训）</td><td>精准解决客户核心问题</td></tr>
+</table>
+
+<b>二、痛点挖掘提问清单（SPIN式提问）</b>
+<ol>
+<li><b>现状问题（S）</b>：${owner}，咱们现在感冒类/肠胃类的销量冠军分别是哪个SKU？一个月大概走多少量？</li>
+<li><b>现状问题（S）</b>：现在合作的供应商给到您的政策是怎样的？有什么动销支持吗？</li>
+<li><b>难点问题（P）</b>：您觉得现在卖这些品牌，最大的问题是什么？是利润不够、动销太慢、还是压货风险大？</li>
+<li><b>难点问题（P）</b>：客流这块，最近有没有感觉比去年同期少？主要是因为什么原因呢？</li>
+<li><b>暗示问题（I）</b>：如果这个利润空间/动销速度持续下去的话，一年下来大概会少赚多少？</li>
+<li><b>暗示问题（I）</b>：顾客来买三九您这边没货的话，是不是直接流失到隔壁店了？这部分损失算过吗？</li>
+<li><b>需求回报（N）</b>：如果我帮您把感冒/肠胃类的综合毛利提升3-5个点，同时动销周转加快20%，您愿意考虑和三九合作吗？</li>
+<li><b>需求回报（N）</b>：如果我们免费帮您做一次门店促销活动，3天帮您清掉滞销库存的同时带新客进店，您觉得怎么样？</li>
+</ol>
+
+<b>三、促成谈判的临门一脚话术</b>
+<blockquote>"${owner}，我们今天先下个小单试试看，感冒灵+胃泰两个SKU，总共才几百块钱，我给您配套：1个堆头+3张海报+店员培训一次，卖不完我帮您调换。
+您看我今天下午就给您送货过来，还是明天上午方便？"</blockquote>
+`;
+}
+
+function genWechat(name, owner) {
+  return `
+<b>场景1：添加好友验证消息（3选1）</b>
+<div style="background:#E8F5E9;padding:8px;border-radius:5px;margin:6px 0;">
+① 【华润三九】我是给您送三九首单政策的业务小X，${name}合作对接<br>
+② ${owner}您好，我是今天下午拜访您的华润三九业务员，发下合作资料给您<br>
+③ 华润三九OTC · 广东区域 · 小X · ${name}药店动销支持
+</div>
+
+<b>场景2：通过好友后第一条消息</b>
+<blockquote>${owner}您好！我是华润三九广东区域的业务员小X 👋
+很高兴认识您！刚刚在店里和您聊的三九首单合作方案，我整理了一下文字版，稍后发给您参考。
+我们感冒灵、胃泰这些都是广东走量最快的OTC品牌，零压货风险，配套动销全包。
+您有任何问题随时找我，我微信24小时在线 ☀️</blockquote>
+
+<b>场景3：拜访后答谢消息（当天晚上发）</b>
+<blockquote>${owner}晚上好！我是华润三九小X。
+今天感谢您百忙之中抽时间接待我 🙏
+和您沟通的首单方案、动销支持我都整理好了，您参考一下：
+【产品组合】感冒灵×20盒 + 胃泰×10盒 + 皮炎平×10支
+【首单价】XXX元（比正常进货价优惠X%，另送X盒样品）
+【配套支持】免费堆头1个 · 海报5张 · 店员培训1次 · 30天无理由调换
+您考虑一下，明天我再跟进您的想法，不打扰您休息了 🌙</blockquote>
+
+<b>场景4：日常维护 · 节日问候（中秋节示例）</b>
+<blockquote>${owner}中秋快乐！🎑 我是华润三九小X。
+祝您生意兴隆，阖家幸福！
+趁中秋国庆双节，我们三九推出了【门店双节动销大礼包】：
+阿胶礼盒、参麦颗粒、感冒灵家庭装等爆款产品，配套专属节日价+促销物料支持。
+需要为您的${name}预留活动名额吗？名额有限先到先得 😉</blockquote>
+
+<b>场景5：跟进催单 · 3天未回复</b>
+<blockquote>${owner}上午好！我是华润三九小X。
+上次和您聊的首单合作方案，不知道您考虑得怎么样了？
+刚好本周公司有个【新客户首单额外赠礼】的福利，前10名送价值150元的三九礼品包（阿胶糕+维生素）。
+您要是这周确定，我帮您锁一下名额，错过就没有啦 💪</blockquote>
+
+<b>场景6：已合作 · 日常客情维护（每1-2周）</b>
+<blockquote>${owner}好呀！这周三九系列卖得怎么样？
+需要补货或者调换货随时跟我说，我帮您安排。
+另外给您发一下这周的店员推品小技巧，您转给店员看看，卖得好的店单周感冒灵多走30盒 📈
+[附：店员推品话术文档/图片]</blockquote>
+`;
+}
+
+function genObjection() {
+  return `
+<table>
+<tr><th style="width:18%">客户异议</th><th>应答话术（先认同→再破局→给方案）</th></tr>
+<tr><td><b>❶ 价格贵 / 进货价比竞品高</b></td><td>
+"${'老板您说得对，单看进货价三九确实比小牌子高5-8毛。但是您算一下综合收益就不一样了：<br>'+
+'① 三九感冒灵一盒15.8元，同竞品卖12元，单盒差价您赚的更多；<br>'+
+'② 三九不需要教育顾客，自流转率比竞品高至少30%，同样的货架位置，三九一个月多卖20盒，多赚的钱远不止差价；<br>'+
+'③ 我们配套免费的堆头/海报/培训/促销，这些支持竞品是不给的，算下来您反而省了成本。<br>'+
+'要不咱们先拿个最小单试试？卖2周您对比一下数据就知道了。'}"
+</td></tr>
+<tr><td><b>❷ 利润低 / 毛利空间小</b></td><td>
+"${'老板您有这个顾虑很正常，很多新合作的客户一开始也这么认为。但是我们算两笔账：<br>'+
+'① <b>单品毛利率</b>：三九给终端的进货价是XX，建议零售价XX，毛利率XX%，和XX竞品基本持平；<br>'+
+'② <b>综合毛利率</b>：我们有阶梯订货返利（月返X%/季返X%）、首单赠送、动销补贴、年终返点，综合下来毛利比竞品还高3-5个点；<br>'+
+'③ <b>周转率</b>：三九的周转是10-15天，竞品是25-30天，同样1万块钱的货，三九一年给您转24次，竞品才转12次。<br>'+
+'这是我给您做的盈利测算表，您看一下 👇 [附订货模块的毛利测算]'}"
+</td></tr>
+<tr><td><b>❸ 竞品政策好 / 已经在卖竞品了</b></td><td>
+"${'老板我理解，竞品确实也有它的优势。不过咱们不是让您把竞品下掉，而是做<b>品类组合 + 份额升级</b>：<br>'+
+'① 三九放C位走量赚流水，竞品放次位赚高毛利，两个都留着，您的品类结构更健康；<br>'+
+'② 而且三九和竞品不冲突——很多顾客是三九的忠实粉丝，您没货他就去隔壁买了，反而流失客流；<br>'+
+'③ 竞品的政策是好，但三九给您的是【保姆式动销】：从陈列到培训到促销全包，您光卖竞品是享受不到这个服务的。<br>'+
+'要不先拿一两个SKU试一下，比如感冒灵和胃泰，都是零风险的，好卖再扩。'}"
+</td></tr>
+<tr><td><b>❹ 库存压力大 / 不想压货</b></td><td>
+"${'老板您这个担心完全合理，压货是我们业务员最忌讳的事！<br>'+
+'我给您三个承诺：<br>'+
+'① <b>首单保守</b>：第一次合作我不给您推大货，就拿【最基础的3-5个SKU组合】，总金额控制在500-1000块，基本没压力；<br>'+
+'② <b>30天无理由调换</b>：30天内，卖不动的、临期的，我原价给您调换其他SKU，您零风险；<br>'+
+'③ <b>库存预警服务</b>：我每周帮您盘一次库存，快卖完了提醒您补货，卖得慢的我帮您做促销清货，绝对不让您压货。<br>'+
+'您还有什么担心的，我当场给您解决。'}"
+</td></tr>
+<tr><td><b>❺ 没听过/卖不动 / 之前卖过不好</b></td><td>
+"${'老板您说的情况我明白，可能之前合作的业务员服务没跟上。这次不一样：<br>'+
+'① 如果您之前卖过三九卖不动，您告诉我是哪款？我帮您分析原因——大概率是陈列位置不对或者店员不会推；<br>'+
+'② 这次我亲自跟您的店：<b>首周我驻店2天</b>，帮您调整陈列、培训店员、做试营业促销；<br>'+
+'③ 给您一个<b>保销承诺</b>：按我的方案做，2周卖不到XX盒，我把滞销的全部拉走，您一分钱不亏。<br>'+
+'您看，我把风险都担了，您还有什么不放心的？'}"
+</td></tr>
+</table>
+
+<div style="margin-top:10px;padding:10px;background:#FFF8E1;border-radius:6px;font-size:12px;">
+<b>💡 异议处理通用公式：</b><br>
+认同（您说得对/我理解）→ 转折（但是/不过）→ 算账（算毛利/算周转/算客流）→ 给方案（试销/调换/驻店）→ 促单（今天先下小单？）
+</div>
+`;
+}
+
+/* ============ 模块3：订货方案 ============ */
+function generateOrderPlan() {
+  const type = document.getElementById('o_type').value;
+  const scale = document.getElementById('o_scale').value;
+  if (!type || !scale) { toast('⚠️ 请选择门店类型和规模'); return; }
+  const focus = Array.from(document.getElementById('o_focus').selectedOptions).map(o => o.value);
+  const stage = document.getElementById('o_stage').value;
+  const area = document.getElementById('o_area').value;
+  const remark = document.getElementById('o_remark').value.trim();
+  const target = document.getElementById('o_target').value;
+  const cname = target ? (customers.find(x => x.id === target)?.name || '') : '【客户门店】';
+
+  // 选品推荐系数
+  const coef = scale === '5万以下' ? 0.5 : (scale === '5-10万' ? 0.8 : (scale === '10-20万' ? 1.2 : (scale === '20-50万' ? 2 : 3)));
+  const stageCoef = stage === '首单' ? 0.7 : (stage === '补货' ? 1 : 1.5);
+  const finalCoef = coef * stageCoef;
+
+  // 核心推荐SKU
+  const recs = [
+    { cat: '感冒呼吸', name: '999感冒灵颗粒(含糖9袋)', spec: '10g×9袋', price: 9.8, sug: Math.ceil(30*finalCoef), retail: 15.8, cat_zh: '感冒呼吸类' },
+    { cat: '感冒呼吸', name: '999复方板蓝根颗粒', spec: '15g×20袋', price: 11.5, sug: Math.ceil(20*finalCoef), retail: 18.0, cat_zh: '感冒呼吸类' },
+    { cat: '感冒呼吸', name: '999板蓝根颗粒', spec: '10g×20袋', price: 10.0, sug: Math.ceil(15*finalCoef), retail: 16.0, cat_zh: '感冒呼吸类' },
+    { cat: '肠胃消化', name: '三九胃泰颗粒', spec: '20g×6袋', price: 12.5, sug: Math.ceil(20*finalCoef), retail: 19.8, cat_zh: '肠胃消化类' },
+    { cat: '肠胃消化', name: '补脾益肠丸', spec: '90g/瓶', price: 13.0, sug: Math.ceil(12*finalCoef), retail: 20.0, cat_zh: '肠胃消化类' },
+    { cat: '外用止痛', name: '正天丸', spec: '6g×10袋', price: 14.5, sug: Math.ceil(10*finalCoef), retail: 22.0, cat_zh: '外用止痛/头痛' },
+    { cat: '外用止痛', name: '天和骨通贴膏', spec: '10贴/盒', price: 14.0, sug: Math.ceil(12*finalCoef), retail: 22.0, cat_zh: '外用止痛/贴膏' },
+    { cat: '皮肤用药', name: '999皮炎平(糠酸莫米松)', spec: '10g/支', price: 11.0, sug: Math.ceil(15*finalCoef), retail: 16.8, cat_zh: '皮肤用药类' },
+    { cat: '皮肤用药', name: '顺峰康王', spec: '10g/支', price: 8.5, sug: Math.ceil(12*finalCoef), retail: 13.0, cat_zh: '皮肤用药(真菌)' },
+    { cat: '儿科用药', name: '999小儿氨酚黄那敏', spec: '6g×10袋', price: 7.8, sug: Math.ceil(10*finalCoef), retail: 12.0, cat_zh: '儿科用药类' },
+    { cat: '补益养生', name: '参麦颗粒', spec: '25g×24袋', price: 38.0, sug: Math.ceil(6*finalCoef), retail: 58.0, cat_zh: '补益养生类' },
+    { cat: '补益养生', name: '阿胶补血颗粒', spec: '4g×30袋', price: 58.0, sug: Math.ceil(4*finalCoef), retail: 88.0, cat_zh: '补益养生类' },
+    { cat: '维生素', name: '999维生素C咀嚼片', spec: '1g×60片', price: 45.0, sug: Math.ceil(5*finalCoef), retail: 78.0, cat_zh: '维生素保健类' }
+  ];
+  // 按选中品类过滤
+  let selectedRecs = recs;
+  if (focus && focus.length > 0) {
+    selectedRecs = recs.filter(r => focus.includes(r.cat) || focus.some(f => r.cat_zh.includes(f)));
+  }
+  // 取TOP SKU：首单6个，补货9个，压货全选
+  const topN = stage === '首单' ? 6 : (stage === '补货' ? 9 : recs.length);
+  if (focus && focus.length > 0) topN; // 有选中品类则不过滤数量
+  selectedRecs = focus && focus.length > 0 ? selectedRecs : selectedRecs.slice(0, topN);
+
+  // 计算金额
+  let totalBox = 0, totalCost = 0, totalRetail = 0;
+  selectedRecs.forEach(r => {
+    totalBox += r.sug;
+    totalCost += r.price * r.sug;
+    totalRetail += r.retail * r.sug;
+  });
+  const margin = totalRetail - totalCost;
+  const marginRate = ((margin / totalRetail) * 100).toFixed(1);
+
+  // 阶梯政策
+  const tiers = [
+    { tier: '阶梯1 · 体验档', min: 1, max: 999, discount: 0, rebate: '0%', support: '样品2盒 + 产品资料 + 基础海报3张', target: '首单试探性合作' },
+    { tier: '阶梯2 · 标准档', min: 1000, max: 2999, discount: 3, rebate: '月返2%', support: '堆头1个 + 海报5张 + 爆炸贴20张 + 店员培训1次', target: '常规首单/补货推荐' },
+    { tier: '阶梯3 · 动销档', min: 3000, max: 4999, discount: 5, rebate: '月返2%+季返1%', support: '堆头+端架+海报10张+爆炸贴50张+驻店促销1天+O2O优化', target: '压货/活动合作推荐' },
+    { tier: '阶梯4 · 战略档', min: 5000, max: 99999, discount: 7, rebate: '月返3%+季返2%+年返1%', support: '全部物料+月度驻店3天+主题促销活动1场+连锁总部对接', target: '稳定合作A类客户' }
+  ];
+  const currentTier = tiers.find(t => totalCost >= t.min && totalCost <= t.max) || tiers[0];
+  const actualCost = (totalCost * (1 - currentTier.discount/100)).toFixed(2);
+  const actualMargin = totalRetail - parseFloat(actualCost);
+  const actualMarginRate = ((actualMargin / totalRetail) * 100).toFixed(1);
+
+  const dateStr = new Date().toLocaleDateString('zh-CN');
+
+  let html = `
+<h3>📄 华润三九OTC · 门店采购建议书</h3>
+<table>
+<tr><th style="width:30%">项目</th><th>详情</th></tr>
+<tr><td>门店名称</td><td>${cname}</td></tr>
+<tr><td>门店类型 / 规模</td><td>${type} · 月销 ${scale}</td></tr>
+<tr><td>合作阶段</td><td>${stage}</td></tr>
+<tr><td>服务区域</td><td>华润三九OTC · 广东${area}区域</td></tr>
+<tr><td>建议日期</td><td>${dateStr}</td></tr>
+${remark ? `<tr><td>备注说明</td><td>${remark}</td></tr>` : ''}
+</table>
+
+<h3>一、推荐选品组合 & 订货量建议</h3>
+<table>
+<tr><th>品类</th><th>产品名称</th><th>规格</th><th>订货量(盒)</th><th>进货单价</th><th>建议零售价</th><th>单盒毛利</th><th>小计进货额</th></tr>
+${selectedRecs.map(r => `
+<tr>
+  <td>${r.cat_zh}</td>
+  <td><b>${r.name}</b></td>
+  <td>${r.spec}</td>
+  <td style="text-align:center;">${r.sug}</td>
+  <td>¥${r.price.toFixed(1)}</td>
+  <td>¥${r.retail.toFixed(1)}</td>
+  <td style="color:var(--success);">¥${(r.retail-r.price).toFixed(1)}</td>
+  <td>¥${(r.price*r.sug).toFixed(0)}</td>
+</tr>`).join('')}
+<tr style="background:#FFF3E0;font-weight:600;">
+  <td colspan="3" style="text-align:right;">合计</td>
+  <td style="text-align:center;">${totalBox}</td>
+  <td colspan="2"></td>
+  <td style="color:var(--success);">¥${margin.toFixed(0)}</td>
+  <td>¥${totalCost.toFixed(0)}</td>
+</tr>
+</table>
+
+<h3>二、阶梯订货政策（本次订单匹配）</h3>
+<table>
+<tr><th>档位</th><th>订货金额区间</th><th>进货折扣</th><th>返利政策</th><th>配套动销支持</th><th>推荐场景</th></tr>
+${tiers.map(t => `
+<tr style="${t.tier === currentTier.tier ? 'background:#E8F5E9;font-weight:600;' : ''}">
+  <td>${t.tier === currentTier.tier ? '👉 ' : ''}${t.tier}</td>
+  <td>${t.max >= 99999 ? t.min+'元以上' : t.min+'-'+t.max+'元'}</td>
+  <td>${t.discount}%</td>
+  <td>${t.rebate}</td>
+  <td style="font-size:11px;">${t.support}</td>
+  <td>${t.target}</td>
+</tr>`).join('')}
+</table>
+<div style="background:#E3F2FD;padding:8px;border-radius:5px;margin:6px 0;">
+👉 <b>本次订单命中【${currentTier.tier}】</b>：进货额 ¥${totalCost.toFixed(0)} × ${currentTier.discount}%折扣 = 实付 <b style="color:var(--primary-dark);font-size:16px;">¥${actualCost}</b>
+</div>
+
+<h3>三、盈利测算说明（给老板看的账）</h3>
+<table>
+<tr><th style="width:35%">测算项目</th><th>金额 / 说明</th></tr>
+<tr><td>① 投入进货成本（折后）</td><td>¥${actualCost}</td></tr>
+<tr><td>② 全部售完后销售额</td><td>¥${totalRetail.toFixed(0)}</td></tr>
+<tr><td>③ 单品毛利合计</td><td style="color:var(--success);font-weight:600;">¥${actualMargin.toFixed(0)}</td></tr>
+<tr><td>④ 单品毛利率</td><td>${actualMarginRate}%</td></tr>
+<tr><td>⑤ 阶梯返利（预计）</td><td>${currentTier.rebate} ≈ ¥${(parseFloat(actualCost) * parseFloat(currentTier.rebate.replace(/[^0-9.]/g,'').split('+')[0])/100).toFixed(0)}</td></tr>
+<tr><td>⑥ 预计周转天数</td><td>15 - 20 天（三九品牌自流转率高）</td></tr>
+<tr><td>⑦ 年化投资回报率（ROI）</td><td style="color:var(--success);font-weight:600;">≈ ${((actualMargin/parseFloat(actualCost)) * (365/18) * 100).toFixed(0)}%</td></tr>
+</table>
+<div style="background:#FFF8E1;padding:8px;border-radius:5px;margin-top:8px;font-size:12px;">
+<b>老板一句话总结：</b><br>
+投入 ¥${actualCost}，18天左右周转一次，每次赚 ¥${actualMargin.toFixed(0)}，一年能转20次，<b>综合收益超过 ¥${(actualMargin*20).toFixed(0)}</b>，比存款划算几十倍，还没有任何压货风险（30天无理由调换）。
+</div>
+
+<h3>四、配套动销支持清单</h3>
+<ul>
+  <li>🎁 <b>物料类：</b>${currentTier.support.split('+').slice(0,3).join(' / ')}</li>
+  <li>📚 <b>培训类：</b>店员推品话术培训 1次（30分钟/门店，可上门或微信群）</li>
+  <li>🏪 <b>陈列类：</b>免费设计黄金陈列位 + 堆头/端架规划图</li>
+  <li>🛵 <b>配送类：</b>广东区域48小时内送货上门，货到验收</li>
+  <li>🔁 <b>售后类：</b>30天无理由调换货 · 临期产品免费调换</li>
+  <li>📈 <b>运营类：</b>库存周报 + 补货提醒 + 动销数据分析（每周1次）</li>
+  <li>🎪 <b>促销类：</b>每季度免费策划1场门店主题促销活动方案</li>
+</ul>
+
+<h3>五、下单方式</h3>
+<ol>
+  <li>确认本建议书内容无误 → 联系业务员小X</li>
+  <li>微信/电话下单 → 48小时内配送到店 → 货到验收付款</li>
+  <li>业务员上门：签订合作协议 → 首单物料同步送达 → 启动店员培训</li>
+</ol>
+<div style="margin-top:10px;padding:10px;background:#E8F5E9;border-radius:5px;">
+✅ <b>风险零承诺：</b>30天内任何SKU卖不动、临期、损坏，一律原价调换/退款。您零风险试水。
+</div>
+  `;
+  document.getElementById('order-output').innerHTML = html;
+  document.getElementById('order-result-card').style.display = 'block';
+  document.getElementById('order-result-card').scrollIntoView({ behavior:'smooth' });
+}
+
+/* ============ 模块4：动销策划 ============ */
+function generateMarketPlan() {
+  const name = document.getElementById('m_name').value.trim();
+  if (!name) { toast('⚠️ 请填写门店名称'); return; }
+  const goal = document.getElementById('m_goal').value;
+  const products = Array.from(document.getElementById('m_products').selectedOptions).map(o => o.value);
+  const defProds = ['999感冒灵颗粒','三九胃泰颗粒/胶囊','999皮炎平'];
+  const finalProds = products.length ? products : defProds;
+  const traffic = document.getElementById('m_traffic').value;
+  const o2o = document.getElementById('m_o2o').value;
+  const period = document.getElementById('m_period').value;
+  const type = document.getElementById('m_type').value;
+
+  const goalMap = {
+    '新品导入': '快速建立消费者认知，店员敢推顾客敢买',
+    '清库存': '2周内清理现有滞销库存80%以上',
+    '提销量': '同比提升核心SKU销量30%+',
+    '抢份额': '抢占竞品TOP1货架份额，三九品类占比升至第一',
+    '节日促销': '节日档销量爆发，同比提升50%+'
+  };
+
+  // 陈列建议
+  const displayTips = [];
+  displayTips.push('🏆 <b>黄金位置主陈列：</b>进门第1组货架/收银台对面货架 eye-level（1.2-1.5米高度），占比≥2个排面');
+  displayTips.push('🛒 <b>收银台关联陈列：</b>收银台旁挂网/小货架：皮炎平×感冒灵×小儿氨酚，关联客单价+30%');
+  displayTips.push('📦 <b>堆头陈列（必做）：</b>门口/主通道1.2m×0.8m堆头，主打'+finalProds[0]+'（走量款），堆码≥8层，配价格爆炸贴');
+  displayTips.push('🔗 <b>品类关联陈列：</b>感冒灵→板蓝根→维生素C（感冒健康链）；胃泰→补脾益肠→参麦颗粒（肠胃调理链）');
+  if (type === '连锁门店' || traffic === '高') displayTips.push('🎯 <b>端架陈列：</b>主通道末端端架1个，三九全系组合陈列，配专区标识');
+  displayTips.push('🏷️ <b>价格标识：</b>建议零售价爆炸贴醒目张贴，写"¥X.X 厂家指导价"，旁边贴"大牌子·放心买"');
+
+  // 物料清单
+  const materials = [
+    { name: '堆头围布/KT板', qty: 1, use: '堆头四周包裹，突出三九品牌色' },
+    { name: '产品海报', qty: traffic==='高'?6:3, use: '门口1张、货架侧2张、收银台1张' },
+    { name: '价格爆炸贴', qty: 20, use: '每个SKU 1张，重点SKU贴3张' },
+    { name: '品类分区条', qty: 5, use: '货架上贴"三九专区/感冒健康区/肠胃调理区"' },
+    { name: '店员胸章/手环', qty: 10, use: '活动期店员佩戴，强化品牌印象' },
+    { name: '顾客试用装/样品袋', qty: 30, use: '买赠活动用、免费派发' }
+  ];
+
+  // 促销活动
+  const promos = [];
+  if (goal === '新品导入') {
+    promos.push({ name: '买就送', desc: '购买三九任意产品，送试用装1袋（感冒灵/胃泰/皮炎平随机）', period: '活动全期' });
+    promos.push({ name: '首单立减', desc: '首单购买三九产品满30元立减5元（门店补贴+厂家各出一半）', period: '前3天' });
+  } else if (goal === '清库存') {
+    promos.push({ name: '买1赠1', desc: '指定滞销SKU买1盒赠同品1盒/或赠其他关联SKU', period: '活动前7天' });
+    promos.push({ name: '组合清仓', desc: '滞销款+爆款组合装，整体价格比单买优惠15%', period: '活动全期' });
+  } else if (goal === '提销量' || goal === '抢份额') {
+    promos.push({ name: '满减阶梯', desc: '三九满38减5 / 满68减10 / 满98减18', period: '活动全期' });
+    promos.push({ name: '买赠有礼', desc: '满48送三九维C咀嚼片1瓶 / 满88送阿胶糕1盒体验装', period: '周末爆发期' });
+    promos.push({ name: '抽奖大转盘', desc: '消费三九满58元抽1次：一等奖三九蛋白粉、二等奖感冒灵家庭装、三等奖试用装（100%中奖）', period: '周末2天' });
+  } else if (goal === '节日促销') {
+    promos.push({ name: '节日礼盒装', desc: '阿胶补血礼盒 / 参麦养生礼盒 / 感冒家庭常备礼盒，礼盒装立减20元', period: '节日前7天至节日当天' });
+    promos.push({ name: '满赠节日礼', desc: '满99送中秋月饼1盒 / 新春对联大礼包（按节日匹配）', period: '节日前3天' });
+  }
+  promos.push({ name: '店员推品奖励', desc: '店员每卖出1盒三九产品奖励0.5-2元（现金日结/周结），设置当日销冠奖额外20元红包', period: '活动全期' });
+
+  // 店员培训话术
+  const clerkTalks = finalProds.map(p => {
+    const prod = PRODUCTS.find(pp => pp.name === p || p.includes(pp.name.slice(0,4)));
+    return prod ? `<b>【${prod.name}】</b>：${prod.clerk_talk}` : `<b>【${p}】</b>：这款是三九的爆款，大牌子顾客都认可，现在有活动特别划算。`;
+  });
+
+  // O2O优化
+  const o2oTips = [];
+  if (o2o === '有') {
+    o2oTips.push('🔖 <b>标题优化：</b>每个三九SKU标题加"华润三九"+"感冒灵/胃泰"核心关键词，如：【华润三九】999感冒灵颗粒9袋 感冒发烧鼻塞咽痛家庭常备');
+    o2oTips.push('🖼️ <b>主图优化：</b>白底图+品牌logo+价格标签+活动角标（满减/买赠），前3张图展示：产品正面+规格+适应症');
+    o2oTips.push('💰 <b>价格策略：</b>O2O价格比线下略高5-8%，但叠加平台满减券后实际到手价与线下持平；设置【首单立减5元】拉新');
+    o2oTips.push('🎡 <b>平台活动报名：</b>美团/饿了么「家庭常备药」「感冒专区」「肠胃护理」专区必报，坑产TOP3锁定资源位');
+    o2oTips.push('💬 <b>评价维护：</b>每条差评24小时内回复处理，引导好评送优惠券，三九品牌好评率≥95%可获平台加权');
+    o2oTips.push('📦 <b>组合套餐：</b>设置【感冒家庭套餐】【肠胃调理套餐】【皮肤护理套餐】，客单价提升40%+');
+  } else if (o2o === '待开通') {
+    o2oTips.push('⚠️ <b>强烈建议开通O2O：</b>广东药店O2O单店月均贡献3000-8000元销售额，美团/饿了么双平台开通成本仅3000元/年，3个月即可回本');
+    o2oTips.push('📞 <b>开通协助：</b>我可以帮您对接美团/饿了么区域招商经理，快速审核上架，首月免佣金');
+  } else {
+    o2oTips.push('💡 <b>O2O是增量必做项：</b>广东线上购药渗透率已超过35%，没开通O2O等于每月白白流失3000+销售额');
+  }
+
+  // 执行时间表
+  const periodDays = period === '7天' ? 7 : (period === '14天' ? 14 : (period === '30天' ? 30 : 10));
+  const schedule = [];
+  schedule.push({ day: 'D-3（活动前3天）', task: '① 与门店确认活动方案 ② 物料到位 ③ 店员培训完成 ④ 线上活动页/商品标题优化 ⑤ 库存盘点与补货' });
+  schedule.push({ day: 'D-1（活动前1天）', task: '① 堆头/陈列/海报搭建布置 ② 价格调整与爆炸贴张贴 ③ 促销系统/收银台设置 ④ 微信群发预热老客户' });
+  schedule.push({ day: 'D1-D3（启动期）', task: '① 业务员驻店1天带教 ② 店员推品奖当日结算 ③ 实时监控销量调整陈列 ④ 线上满减/首单券开跑' });
+  schedule.push({ day: `D4-D${periodDays-3}（持续期）`, task: '① 每日微信群发店员销量排名 ② 店员推品奖周结 ③ 周末加推抽奖/买赠活动 ④ 库存预警与及时补货' });
+  schedule.push({ day: `D${periodDays-2}-D${periodDays}（收尾期）`, task: '① 最后3天大促冲刺 ② 未清库存二次促销 ③ 活动销量数据汇总 ④ 门店复盘与下一周期规划' });
+
+  // 评估指标
+  const indicators = [
+    { name: '销量增长率', calc: '活动期销量 / 往期同期销量 - 1', target: goal==='清库存'?'≥80%':goal==='节日促销'?'≥50%':'≥30%' },
+    { name: '三九品类占比', calc: '三九销售额 / 门店OTC总销售额', target: goal==='抢份额'?'≥35%':'≥20%' },
+    { name: '客单价提升率', calc: '活动期客单价 / 往期客单价 - 1', target: '≥15%' },
+    { name: '店员推荐转化率', calc: '三九被推荐次数 / 成交次数', target: '≥40%' },
+    { name: '库存周转天数', calc: '活动后剩余库存 / 日均销量', target: '≤20天' },
+    { name: 'O2O订单增量', calc: '活动期三九O2O订单 / 往期三九O2O订单 - 1', target: '≥50%' },
+    { name: '综合ROI', calc: '(活动新增毛利 - 活动投入成本) / 活动投入成本', target: '≥200%' }
+  ];
+
+  const dateStr = new Date().toLocaleDateString('zh-CN');
+
+  let html = `
+<h3>🚀 ${name} · 三九OTC动销执行方案</h3>
+<table>
+<tr><th style="width:30%">项目</th><th>详情</th></tr>
+<tr><td>方案制定日期</td><td>${dateStr}</td></tr>
+<tr><td>活动周期</td><td>${period}</td></tr>
+<tr><td>门店类型</td><td>${type}</td></tr>
+<tr><td>门店客流等级 / O2O</td><td>${traffic==='高'?'高(>80人/天)':traffic==='低'?'低(<30人/天)':'中(30-80人/天)'} · O2O：${o2o==='有'?'已开通(美团/饿了么)':o2o==='无'?'未开通':'待开通'}</td></tr>
+<tr><td>动销目标</td><td>${goalMap[goal]}</td></tr>
+<tr><td>重点动销SKU</td><td>${finalProds.join('、')}</td></tr>
+</table>
+
+<h3>一、门店陈列 & 物料建议（落地必做）</h3>
+<b>1.1 陈列执行标准</b>
+<ol>
+${displayTips.map(t=>`<li>${t}</li>`).join('')}
+</ol>
+<b>1.2 物料清单 & 使用说明</b>
+<table>
+<tr><th>物料名称</th><th>建议数量</th><th>使用方法</th></tr>
+${materials.map(m=>`<tr><td>${m.name}</td><td style="text-align:center;">${m.qty}</td><td>${m.use}</td></tr>`).join('')}
+</table>
+
+<h3>二、促销活动方案（${period}落地期）</h3>
+<table>
+<tr><th>活动名称</th><th>活动规则</th><th>执行时间</th></tr>
+${promos.map((p,i)=>`<tr><td>${i+1}. ${p.name}</td><td>${p.desc}</td><td>${p.period}</td></tr>`).join('')}
+</table>
+
+<h3>三、O2O线上店铺优化建议</h3>
+<ol>
+${o2oTips.map(t=>`<li>${t}</li>`).join('')}
+</ol>
+
+<h3>四、店员培训 · 推品简短话术（背熟即用）</h3>
+<ol>
+${clerkTalks.map(t=>`<li>${t}</li>`).join('')}
+</ol>
+<div style="background:#E3F2FD;padding:8px;border-radius:5px;margin-top:6px;">
+<b>店员推品激励方案：</b>建议老板设置"三九推品日结奖"，每卖1盒奖0.5-2元现金，每日下班前群内结算红包，当日销冠额外奖20元，动力拉满。
+</div>
+
+<h3>五、活动执行时间表</h3>
+<table>
+<tr><th style="width:25%">时间节点</th><th>必须完成事项</th></tr>
+${schedule.map(s=>`<tr><td>${s.day}</td><td>${s.task}</td></tr>`).join('')}
+</table>
+
+<h3>六、活动效果评估指标（7个维度）</h3>
+<table>
+<tr><th>指标名称</th><th>计算公式</th><th>目标值</th></tr>
+${indicators.map(i=>`<tr><td>${i.name}</td><td>${i.calc}</td><td style="color:var(--success);font-weight:600;">${i.target}</td></tr>`).join('')}
+</table>
+
+<h3>七、业务员执行承诺</h3>
+<ul>
+  <li>✅ 活动前：上门协助陈列搭建 + 30分钟店员培训（D-1完成）</li>
+  <li>✅ 活动中：驻店1天带教 + 每日微信群内数据播报 + 库存补货提醒</li>
+  <li>✅ 活动后：输出完整复盘数据表 + 下轮动销优化建议 + 剩余库存清货方案</li>
+</ul>
+  `;
+  document.getElementById('market-output').innerHTML = html;
+  document.getElementById('market-result-card').style.display = 'block';
+  document.getElementById('market-result-card').scrollIntoView({ behavior:'smooth' });
+}
+
+/* ============ 模块5：复盘 ============ */
+function generateReview() {
+  const period = document.getElementById('r_period').value;
+  const date = document.getElementById('r_date').value.trim();
+  const visit = parseInt(document.getElementById('r_visit').value || '0');
+  const newC = parseInt(document.getElementById('r_new').value || '0');
+  const order = parseInt(document.getElementById('r_order').value || '0');
+  const amount = parseFloat(document.getElementById('r_amount').value || '0');
+  const detail = document.getElementById('r_detail').value.trim();
+  const problem = document.getElementById('r_problem').value.trim();
+  const follow = document.getElementById('r_follow').value.trim();
+
+  // 核心指标
+  const successRate = visit > 0 ? ((order / visit) * 100).toFixed(1) : 0;
+  const avgOrder = order > 0 ? (amount / order).toFixed(0) : 0;
+  const newRate = visit > 0 ? ((newC / visit) * 100).toFixed(1) : 0;
+
+  // 评级
+  let score = 0;
+  score += Math.min(visit * 2, 30); // 拜访满分30
+  score += Math.min(newC * 5, 20);  // 新客满分20
+  score += Math.min(order * 5, 20); // 订单满分20
+  score += Math.min(amount / 100, 30); // 金额满分30
+  const grade = score >= 80 ? '🏆 S级（卓越）' : score >= 60 ? '🥇 A级（优秀）' : score >= 40 ? '🥈 B级（合格）' : '🥉 C级（待提升）';
+
+  // 问题归类
+  const problems = problem.split('\n').map(p=>p.trim()).filter(Boolean);
+  const probCats = [];
+  const priceCount = problems.filter(p => /价|贵|便宜|毛利|利润/.test(p)).length;
+  const stockCount = problems.filter(p => /库存|压货|货/.test(p)).length;
+  const compCount = problems.filter(p => /竞品|竞争|对手/.test(p)).length;
+  const pushCount = problems.filter(p => /店员|推|培训|不会卖/.test(p)).length;
+  const chainCount = problems.filter(p => /连锁|采购|审批|流程/.test(p)).length;
+  const otherCount = problems.length - priceCount - stockCount - compCount - pushCount - chainCount;
+  if (priceCount) probCats.push({ cat: '价格/利润类', count: priceCount, sol: '强化综合毛利算账法+阶梯返利政策说明；提供价格对比表+盈利测算单' });
+  if (stockCount) probCats.push({ cat: '库存/压货类', count: stockCount, sol: '强调30天无理由调换政策；首单从小单切入；给库存预警+补货提醒服务' });
+  if (compCount) probCats.push({ cat: '竞品冲击类', count: compCount, sol: '差异化打法：强调三九品牌自流转+保姆式动销支持；组合陈列+份额抢占策略' });
+  if (pushCount) probCats.push({ cat: '店员推品类', count: pushCount, sol: '立即安排30分钟上门培训；设置店员当日推品现金奖励；发放推品话术卡' });
+  if (chainCount) probCats.push({ cat: '连锁流程类', count: chainCount, sol: '对接区域连锁采购部；准备首进资料包（资质+报价+动销方案）；每周催进度' });
+  if (otherCount > 0 && problems.length > probCats.reduce((s,c)=>s+c.count,0)) probCats.push({ cat: '其他问题', count: otherCount, sol: '具体问题单独分析，下次复盘前逐个解决' });
+
+  // 下期行动
+  const nextActions = [];
+  nextActions.push('🎯 <b>拜访目标：</b>本'+(period==='每日'?'日':'周')+'实际拜访 '+visit+' 家，下'+(period==='每日'?'日':'周')+'目标 '+Math.max(visit, period==='每日'?5:15)+' 家，提升 '+Math.round((Math.max(visit, period==='每日'?5:15)-visit)/Math.max(1,visit)*100)+'%');
+  nextActions.push('🆕 <b>新客开发：</b>本'+(period==='每日'?'日':'周')+'新开发 '+newC+' 家，下'+(period==='每日'?'日':'周')+'目标 '+Math.max(newC+1, period==='每日'?2:5)+' 家，聚焦'+(score>=60?'连锁门店拓新':'存量未合作C类客户转化')+'。');
+  nextActions.push('📦 <b>订单/业绩：</b>本'+(period==='每日'?'日':'周')+'成交 '+order+' 单 · 金额 '+amount.toFixed(0)+' 元，下'+(period==='每日'?'日':'周')+'目标 '+Math.round(amount*1.3)+' 元，重点：'+(parseFloat(avgOrder)<1000?'提升客单价（首单从500→1000）':'存量客户二次补货+SKU扩展')+'。');
+  if (parseFloat(successRate) < 30) nextActions.push('⚠️ <b>成交率提升：</b>当前成交率仅 '+successRate+'%，低于目标30%。原因：陌拜前准备不足。改进：每家拜访前先用【模块2】生成陌拜工具包，熟读开场白+异议应答。');
+  if (probCats.length) nextActions.push('🛠️ <b>问题攻坚：</b>针对本次Top问题【'+probCats[0].cat+'】，下'+(period==='每日'?'日':'周')+'逐个客户针对性解决。解决方案：'+probCats[0].sol);
+  nextActions.push('📚 <b>技能提升：</b>复习【模块6】TOP3产品销售话术（感冒灵/胃泰/皮炎平），每日晨读10分钟。');
+
+  // 待跟进客户优先级
+  const follows = follow.split('\n').map(f=>f.trim()).filter(Boolean);
+  const sortedFollows = follows.map((f, i) => {
+    let pri = 'B';
+    if (/首单|签约|紧急|政策|本周/.test(f)) pri = 'A';
+    else if (/样品|试用|下次|有空/.test(f)) pri = 'B';
+    else pri = 'C';
+    return { text: f, pri, i };
+  }).sort((a,b) => a.pri.localeCompare(b.pri));
+
+  let html = `
+<h3>一、${period}工作小结（${date}）</h3>
+<table>
+<tr><th style="width:35%">核心指标</th><th>数据</th><th>评价</th></tr>
+<tr><td>🏪 拜访门店数</td><td><b>${visit}</b> 家</td><td>${visit >= (period==='每日'?5:15) ? '✅ 达标' : '❌ 不足，建议增加拜访量'}</td></tr>
+<tr><td>🆕 新开发客户数</td><td><b>${newC}</b> 家</td><td>${newC >= (period==='每日'?2:5) ? '✅ 开发良好' : '⚠️ 加强拓客力度'}</td></tr>
+<tr><td>💼 成交订单数</td><td><b>${order}</b> 单</td><td>${order >= (period==='每日'?2:5) ? '✅ 转化不错' : '⚠️ 提升成交率'}</td></tr>
+<tr><td>💰 成交金额</td><td><b>¥${amount.toFixed(0)}</b></td><td>${amount >= (period==='每日'?3000:15000) ? '✅ 业绩突出' : '⚠️ 潜力待挖掘'}</td></tr>
+<tr><td>📊 新客转化率</td><td><b>${newRate}%</b></td><td>目标值 ≥ 20%</td></tr>
+<tr><td>📊 整体成交率</td><td><b>${successRate}%</b></td><td>目标值 ≥ 30%</td></tr>
+<tr><td>📊 平均客单价</td><td><b>¥${avgOrder}</b></td><td>目标值 ≥ ¥1,000</td></tr>
+<tr style="background:#FFF3E0;font-weight:600;">
+  <td>🏆 综合绩效评级</td><td>${grade}</td><td>得分 ${score.toFixed(0)} / 100</td>
+</tr>
+</table>
+${detail ? `<b>📝 拜访详情补充：</b><pre style="white-space:pre-wrap;margin:6px 0;padding:8px;background:#FAFAFA;border-radius:5px;">${detail}</pre>` : ''}
+
+<h3>二、问题归类总结 & 解决方案</h3>
+${problems.length === 0 ? '<div style="padding:10px;color:#666;">本期未录入问题，建议下次详细记录，便于迭代。</div>' : `
+共记录 <b>${problems.length}</b> 个问题，归类如下：
+<table>
+<tr><th>问题类别</th><th>数量</th><th>对应解决方案</th></tr>
+${probCats.map(c=>`<tr><td>${c.cat}</td><td style="text-align:center;">${c.count}</td><td>${c.sol}</td></tr>`).join('')}
+</table>
+<details style="margin-top:8px;"><summary style="cursor:pointer;color:var(--primary);">📋 展开原始问题明细</summary><ol style="margin-top:6px;">${problems.map(p=>`<li>${p}</li>`).join('')}</ol></details>
+`}
+
+<h3>三、下${period==='每日'?'日':'周'}重点行动清单（按优先级）</h3>
+<ol>
+${nextActions.map(a=>`<li>${a}</li>`).join('')}
+<li>📋 每日出门前：用【模块2】生成当日拜访客户的陌拜工具包（开场白+异议应答）</li>
+<li>🕕 每日收工后：花15分钟录入当日拜访数据到本系统，养成复盘习惯</li>
+</ol>
+
+<h3>四、待跟进客户优先级排序</h3>
+${follows.length === 0 ? '<div style="padding:10px;color:#666;">未录入待跟进客户，建议下次录入，便于跟踪。</div>' : `
+<table>
+<tr><th>优先级</th><th>客户 / 跟进事项</th><th>建议完成时间</th></tr>
+${sortedFollows.map((f,i)=>`
+<tr style="${f.pri==='A'?'background:#FFEBEE;':f.pri==='B'?'background:#FFF8E1;':''}">
+  <td style="text-align:center;"><span class="level-tag level-${f.pri}">${f.pri}级</span></td>
+  <td>${f.text}</td>
+  <td>${f.pri==='A'?'🔥 3天内':f.pri==='B'?'⏰ 7天内':'📌 2周内'}</td>
+</tr>`).join('')}
+</table>
+`}
+
+<div style="margin-top:12px;padding:12px;background:${score>=60?'#E8F5E9':'#FFF3E0'};border-radius:6px;">
+${score>=80 ? '💪 太棒了！保持这个节奏，本月冠军就是你。继续开拓A级连锁大客户，冲击TOP业绩！' :
+ score>=60 ? '👍 表现不错，基础工作扎实。下一步重点：提升客单价+成交率，冲刺TOP。' :
+ score>=40 ? '📈 继续加油！把基础动作做扎实，每天多拜访2家，每周多成交1单，很快就能看到进步。' :
+ '🔴 本期基础工作不足，下周期核心目标：把拜访量做上去，先把过程量搞达标，结果自然来！'}
+</div>
+  `;
+  document.getElementById('review-output').innerHTML = html;
+  document.getElementById('review-result-card').style.display = 'block';
+  document.getElementById('review-result-card').scrollIntoView({ behavior:'smooth' });
+}
+
+/* ============ 复盘历史数据库 ============ */
+const REVIEW_HISTORY_KEY = 'otc_review_history';
+
+function getReviewHistory() {
+  try { return JSON.parse(localStorage.getItem(REVIEW_HISTORY_KEY) || '[]'); }
+  catch(e) { return []; }
+}
+function saveReviewHistory(arr) { localStorage.setItem(REVIEW_HISTORY_KEY, JSON.stringify(arr)); }
+
+// 存入复盘数据库
+function saveReviewToHistory() {
+  const period = document.getElementById('r_period').value;
+  const dateStr = document.getElementById('r_date').value.trim() || todayStr();
+  const visit = parseInt(document.getElementById('r_visit').value) || 0;
+  const newC = parseInt(document.getElementById('r_new').value) || 0;
+  const order = parseInt(document.getElementById('r_order').value) || 0;
+  const amount = parseFloat(document.getElementById('r_amount').value) || 0;
+  const detail = document.getElementById('r_detail').value.trim();
+  const problem = document.getElementById('r_problem').value.trim();
+  const follow = document.getElementById('r_follow').value.trim();
+  const outputHtml = document.getElementById('review-output').innerHTML;
+
+  // 计算评分（复用generateReview中的逻辑）
+  const conversionRate = visit > 0 ? (order / visit * 100) : 0;
+  const avgOrder = order > 0 ? (amount / order) : 0;
+  const newRate = visit > 0 ? (newC / visit * 100) : 0;
+  let score = 0;
+  if (visit >= 30) score += 25;
+  else if (visit >= 20) score += 20;
+  else if (visit >= 10) score += 15;
+  else if (visit >= 5) score += 10;
+  else score += 5;
+  if (conversionRate >= 60) score += 25;
+  else if (conversionRate >= 40) score += 20;
+  else if (conversionRate >= 25) score += 15;
+  else if (conversionRate >= 10) score += 10;
+  else score += 5;
+  if (amount >= 50000) score += 25;
+  else if (amount >= 20000) score += 20;
+  else if (amount >= 10000) score += 15;
+  else if (amount >= 5000) score += 10;
+  else score += 5;
+  if (newC >= 5) score += 25;
+  else if (newC >= 3) score += 20;
+  else if (newC >= 1) score += 15;
+  else score += 5;
+  const grade = score >= 80 ? 'S' : score >= 60 ? 'A' : score >= 40 ? 'B' : 'C';
+
+  const record = {
+    id: 'rv_' + Date.now(),
+    saveDate: todayStr(),
+    saveTime: new Date().toTimeString().slice(0,5),
+    period: period,
+    dateStr: dateStr,
+    visit: visit,
+    newC: newC,
+    order: order,
+    amount: amount,
+    detail: detail,
+    problem: problem,
+    follow: follow,
+    outputHtml: outputHtml,
+    score: score,
+    grade: grade
+  };
+
+  const history = getReviewHistory();
+  // 检查是否已有同日期记录，有则覆盖
+  const existIdx = history.findIndex(h => h.dateStr === dateStr && h.period === period);
+  if (existIdx >= 0) {
+    if (!confirm('检测到「' + dateStr + '」已有复盘记录，是否覆盖更新？\n（取消则新增一条）')) {
+      history.unshift(record);
+    } else {
+      history[existIdx] = record;
+    }
+  } else {
+    history.unshift(record);
+  }
+  saveReviewHistory(history);
+  renderReviewHistory();
+  toast('✅ 已存入复盘数据库（' + dateStr + ' · ' + period + ' · ' + grade + '级）');
+}
+
+// 渲染历史列表
+function renderReviewHistory() {
+  const history = getReviewHistory();
+  const listEl = document.getElementById('review-history-list');
+  const countEl = document.getElementById('review-history-count');
+  if (countEl) countEl.textContent = history.length + '条记录';
+
+  if (history.length === 0) {
+    listEl.innerHTML = '<div class="empty-state"><div class="icon">📭</div>暂无历史复盘记录，生成复盘后点击「💾存入复盘数据库」即可保存</div>';
+    return;
+  }
+
+  listEl.innerHTML = history.map(r => {
+    const gradeClass = r.grade ? r.grade.toLowerCase() : 'c';
+    const gradeLabel = r.grade ? r.grade + '级' : '未评';
+    return `
+    <div class="history-item" onclick="showReviewHistoryDetail('${r.id}')">
+      <div class="history-item-head">
+        <span class="history-item-date">${r.dateStr}</span>
+        <span class="history-item-meta">${r.period}</span>
+        <span class="history-item-score ${gradeClass}">${gradeLabel} ${r.score||0}分</span>
+        <button class="history-del-btn" onclick="event.stopPropagation(); deleteReviewHistory('${r.id}')">🗑️</button>
+      </div>
+      <div class="history-summary">
+        拜访${r.visit}家 · 新开发${r.newC}家 · 成交${r.order}单 · 金额¥${r.amount.toLocaleString()}
+        ${r.follow ? '<br>📌 待跟进：' + r.follow.split('\n').slice(0,2).join('；') + (r.follow.split('\n').length>2?'...':'') : ''}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// 查看历史详情
+function showReviewHistoryDetail(id) {
+  const history = getReviewHistory();
+  const r = history.find(h => h.id === id);
+  if (!r) return;
+
+  // 高亮选中项
+  document.querySelectorAll('.history-item').forEach(el => el.classList.remove('active'));
+  event.currentTarget.classList.add('active');
+
+  document.getElementById('review-history-detail-title').textContent = '📋 ' + r.dateStr + ' · ' + r.period;
+  document.getElementById('review-history-detail-output').innerHTML = r.outputHtml || '<div style="padding:10px;color:#666;">无报告内容</div>';
+  document.getElementById('review-history-detail-card').style.display = 'block';
+  document.getElementById('review-history-detail-card').scrollIntoView({ behavior:'smooth' });
+}
+
+// 删除单条
+function deleteReviewHistory(id) {
+  if (!confirm('确认删除这条复盘记录？')) return;
+  let history = getReviewHistory();
+  history = history.filter(h => h.id !== id);
+  saveReviewHistory(history);
+  renderReviewHistory();
+  document.getElementById('review-history-detail-card').style.display = 'none';
+  toast('✅ 已删除');
+}
+
+// 清空全部
+function clearAllReviewHistory() {
+  const history = getReviewHistory();
+  if (history.length === 0) { toast('暂无记录可清空'); return; }
+  if (!confirm('确认清空全部 ' + history.length + ' 条复盘记录？此操作不可撤销！')) return;
+  localStorage.removeItem(REVIEW_HISTORY_KEY);
+  renderReviewHistory();
+  document.getElementById('review-history-detail-card').style.display = 'none';
+  toast('✅ 已清空全部复盘记录');
+}
+
+/* ============ 模块6：产品知识库 ============ */
+function renderProductGrid() {
+  const kw = document.getElementById('p_search').value.trim().toLowerCase();
+  const list = PRODUCTS.filter(p => {
+    if (!kw) return true;
+    return p.name.toLowerCase().includes(kw) ||
+           p.cat.toLowerCase().includes(kw) ||
+           p.indications.toLowerCase().includes(kw) ||
+           p.targets.toLowerCase().includes(kw);
+  });
+  const box = document.getElementById('product-grid');
+  if (list.length === 0) {
+    box.innerHTML = `<div class="empty-state" style="grid-column:1/-1;"><div class="icon">🔍</div>未找到匹配的产品，请尝试其他关键词</div>`;
+    return;
+  }
+  box.innerHTML = list.map(p => `
+    <div class="product-card" onclick='showProduct("${p.id}")'>
+      <div class="p-img">${p.icon}</div>
+      <div class="p-name">${p.name}</div>
+      <div class="p-cat">${p.cat}</div>
+    </div>
+  `).join('');
+}
+
+function showProduct(id) {
+  const p = PRODUCTS.find(x => x.id === id);
+  if (!p) return;
+  document.getElementById('product-detail-title').innerHTML = `<span>${p.icon} ${p.name}</span><span class="tag">${p.cat}</span>`;
+  let html = `
+<h3>【基础信息】</h3>
+<table>
+<tr><th style="width:25%">项目</th><th>详情</th></tr>
+<tr><td>产品名称</td><td><b>${p.name}</b></td></tr>
+<tr><td>所属品类</td><td>${p.cat}</td></tr>
+<tr><td>规格包装</td><td>${p.spec}</td></tr>
+<tr><td>参考零售价</td><td>${p.price}</td></tr>
+</table>
+
+<h3>【适应症 / 功能主治】</h3>
+<p>${p.indications}</p>
+
+<h3>【核心目标人群】</h3>
+<p>${p.targets}</p>
+
+<h3>【核心卖点 USP · 4大理由】</h3>
+<ol>
+${p.usp.map(u=>`<li>${u}</li>`).join('')}
+</ol>
+
+<h3>【竞品对比 · 差异化优势】</h3>
+<p>${p.vs_competitor}</p>
+
+<h3>【给老板的销售话术】</h3>
+<ul>
+${p.sales_talk.map(t=>`<li>${t}</li>`).join('')}
+</ul>
+
+<h3>【店员推品话术 · 背熟即用】</h3>
+<div style="background:#E8F5E9;padding:10px;border-radius:6px;">${p.clerk_talk}</div>
+  `;
+  document.getElementById('product-output').innerHTML = html;
+  document.getElementById('product-detail-card').style.display = 'block';
+  document.getElementById('product-detail-card').scrollIntoView({ behavior:'smooth' });
+}
+
+/* ============ 页面初始化 ============ */
+function init() {
+  // 模块1-6基础初始化
+  renderCustomerList();
+  refreshCustomerSelects();
+  renderProductGrid();
+  // 模块8待办初始化
+  refreshTodoCustomerSelect();
+  renderTodos();
+  // 模块8日期默认今天
+  const tdDate = document.getElementById('td_date');
+  if (tdDate) tdDate.value = todayStr();
+  // 长期待办：自动生成今日应执行的待办
+  generateRecurringTodos();
+  // 渲染长期任务列表
+  renderRecurringList();
+  // 顶部栏激活状态
+  const statusEl = document.querySelector('.header .status');
+  if (statusEl) {
+    const pendingCount = todos.filter(t => !t.done).length;
+    statusEl.textContent = pendingCount > 0
+      ? `● 待处理 ${pendingCount} 项 · 运行中`
+      : `● 系统已激活 · 待命中`;
+  }
+  // 启动待办强制校验（规则：存在未完成，第一步优先提醒）
+  setTimeout(() => { checkStartupTodoReminder(); }, 350);
+  // 启动自动备份
+  startAutoBackup();
+  // 渲染复盘历史列表
+  renderReviewHistory();
+}
+init();
+</script>
+</body>
+</html>
